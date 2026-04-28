@@ -12,13 +12,9 @@ import {
   Easing,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {useNavigation} from '@react-navigation/native';
-import {StackNavigationProp} from '@react-navigation/stack';
-import {AuthStackParamList} from '@/shared/navigation/RootNavigator';
+import {useAppStore} from '@shared/store/appStore';
 import {useForm, Controller} from 'react-hook-form';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-
-type NavigationProp = StackNavigationProp<AuthStackParamList>;
 
 interface LoginFormData {
   email: string;
@@ -186,8 +182,9 @@ const floatStyles = StyleSheet.create({
 // Main Screen
 // ─────────────────────────────────────────────
 export function LoginScreen() {
-  const navigation = useNavigation<NavigationProp>();
   const insets = useSafeAreaInsets();
+  const loginSuccess = useAppStore((state) => state.loginSuccess);
+  const startSignup = useAppStore((state) => state.startSignup);
   const {
     control,
     handleSubmit,
@@ -225,7 +222,11 @@ export function LoginScreen() {
 
   const onSubmit = (data: LoginFormData) => {
     console.log('Login data:', data);
-    // TODO: Implement login
+    // TODO: Replace with actual API call
+    loginSuccess(
+      {id: 'temp-id', email: data.email},
+      'temp-token'
+    );
   };
 
   return (
@@ -353,7 +354,7 @@ export function LoginScreen() {
 
           {/* Sign up ghost button */}
           <Pressable
-            onPress={() => navigation.navigate('SignUp')}
+            onPress={() => startSignup()}
             style={({pressed}) => [
               styles.ghostButton,
               pressed && {opacity: 0.7},

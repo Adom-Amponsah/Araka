@@ -12,13 +12,9 @@ import {
   Easing,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {useNavigation} from '@react-navigation/native';
-import {StackNavigationProp} from '@react-navigation/stack';
-import {AuthStackParamList} from '@/shared/navigation/RootNavigator';
+import {useAppStore} from '@shared/store/appStore';
 import {useForm, Controller} from 'react-hook-form';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-
-type NavigationProp = StackNavigationProp<AuthStackParamList>;
 
 interface SignUpFormData {
   fullName: string;
@@ -207,8 +203,9 @@ const CORAL = '#F27649';
 const CARD_RADIUS = 36;
 
 export function SignUpScreen() {
-  const navigation = useNavigation<NavigationProp>();
   const insets = useSafeAreaInsets();
+  const submitSignupForm = useAppStore((state) => state.submitSignupForm);
+  const startLogin = useAppStore((state) => state.startLogin);
 
   const {
     control,
@@ -272,7 +269,8 @@ export function SignUpScreen() {
   };
 
   const onSubmit = (data: SignUpFormData) => {
-    navigation.navigate('OTPVerification', {email: data.email});
+    console.log('SignUp data:', data);
+    submitSignupForm();
   };
 
   return (
@@ -292,14 +290,6 @@ export function SignUpScreen() {
           <View style={styles.ringDecorInner} />
 
           <Animated.View style={{opacity: headerFade}}>
-            {/* Back button */}
-            {/* <Pressable
-              onPress={() => navigation.goBack()}
-              style={styles.backBtn}>
-              <Ionicons name="arrow-back" size={18} color="rgba(255,255,255,0.7)" />
-              <Text style={styles.backText}>Back</Text>
-            </Pressable> */}
-
             {/* Step indicator */}
             <View style={styles.stepRow}>
               <StepDots active={0} />
@@ -442,7 +432,7 @@ export function SignUpScreen() {
           </View>
 
           <Pressable
-            onPress={() => navigation.navigate('Login')}
+            onPress={() => startLogin()}
             style={({pressed}) => [styles.ghostButton, pressed && {opacity: 0.7}]}>
             <Text style={styles.ghostText}>Sign In Instead</Text>
           </Pressable>

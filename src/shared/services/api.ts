@@ -1,5 +1,5 @@
 import axios from 'axios';
-import {useAuthStore} from '@features/auth/store/authStore';
+import {useAppStore} from '@shared/store/appStore';
 
 const API_BASE_URL = 'https://api.araka.com/v1'; // TODO: Use react-native-config
 
@@ -14,7 +14,7 @@ export const api = axios.create({
 // Request interceptor - add auth token
 api.interceptors.request.use(
   async (config) => {
-    const token = useAuthStore.getState().token;
+    const token = useAppStore.getState().token;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -35,12 +35,12 @@ api.interceptors.response.use(
       // TODO: Implement token refresh
       // const refreshToken = useAuthStore.getState().refreshToken;
       // const newToken = await refreshAccessToken(refreshToken);
-      // useAuthStore.getState().setToken(newToken);
+      // useAppStore.getState().setToken(newToken);
       // originalRequest.headers.Authorization = `Bearer ${newToken}`;
       // return api(originalRequest);
 
       // For now, logout on 401
-      useAuthStore.getState().logout();
+      useAppStore.getState().logout();
     }
 
     return Promise.reject(error);

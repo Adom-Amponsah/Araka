@@ -13,17 +13,9 @@ import {
   Platform,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {useNavigation, CompositeNavigationProp} from '@react-navigation/native';
-import {StackNavigationProp} from '@react-navigation/stack';
-import {OnboardingStackParamList} from '../navigation/OnboardingNavigator';
-import type {RootStackParamList} from '@/shared/navigation/RootNavigator';
+import {useAppStore} from '@shared/store/appStore';
 
 const {width, height} = Dimensions.get('window');
-
-type NavigationProp = CompositeNavigationProp<
-  StackNavigationProp<OnboardingStackParamList>,
-  StackNavigationProp<RootStackParamList>
->;
 
 interface OnboardingSlide {
   id: string;
@@ -358,10 +350,17 @@ const slideStyles = StyleSheet.create({
 // Main Screen
 // ─────────────────────────────────────────────
 export function OnboardingScreen() {
-  const navigation = useNavigation<NavigationProp>();
+  console.log('[OnboardingScreen] Rendering component');
+  const completeOnboarding = useAppStore((state) => state.completeOnboarding);
+  const returnFromPreview = useAppStore((state) => state.returnFromPreview);
+  const user = useAppStore((state) => state.user);
+  const token = useAppStore((state) => state.token);
   const insets = useSafeAreaInsets();
   const [currentIndex, setCurrentIndex] = React.useState(0);
   const flatListRef = React.useRef<FlatList<OnboardingSlide>>(null);
+  
+  // Check if user is authenticated (preview mode)
+  const isPreviewMode = !!(user && token);
 
   // Progress bar fill animation — resets and runs per slide
   const progressAnim = React.useRef(new Animated.Value(0)).current;
@@ -391,7 +390,7 @@ export function OnboardingScreen() {
         flatListRef.current?.scrollToIndex({index: nextIndex, animated: true});
         setCurrentIndex(nextIndex);
       } else {
-        navigation.navigate('AuthStack');
+        completeOnboarding();
       }
     }, AUTO_ADVANCE_MS);
 
@@ -436,14 +435,14 @@ export function OnboardingScreen() {
       flatListRef.current?.scrollToIndex({index: nextIndex, animated: true});
       setCurrentIndex(nextIndex);
     } else {
-      navigation.navigate('AuthStack');
+      completeOnboarding();
     }
-  }, [currentIndex, navigation]);
+  }, [currentIndex, completeOnboarding]);
 
   const handleSkip = React.useCallback(() => {
     if (progressTimer.current) clearTimeout(progressTimer.current);
-    navigation.navigate('AuthStack');
-  }, [navigation]);
+    completeOnboarding();
+  }, [completeOnboarding]);
 
   const renderSlide = React.useCallback(
     ({item, index}: {item: OnboardingSlide; index: number}) => (
@@ -494,9 +493,9 @@ export function OnboardingScreen() {
             <View style={styles.wordmarkDot} />
             <Text style={styles.wordmark}>ARAKA</Text>
           </View>
-          <Pressable onPress={handleSkip} style={styles.skipPill}>
-            <Text style={styles.skipText}>Skip</Text>
-          </Pressable>
+            <Pressable onPress={handleSkip} style={styles.skipPill}>
+              <Text style={styles.skipText}>Skip</Text>
+            </Pressable>
         </View>
       </View>
 

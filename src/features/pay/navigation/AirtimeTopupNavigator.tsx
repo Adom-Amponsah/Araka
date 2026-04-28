@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {createStackNavigator} from '@react-navigation/stack';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {EnterNumberScreen} from '../screens/airtopup/EnterNumberScreen';
 import {SelectAmountScreen} from '../screens/airtopup/SelectAmountScreen';
 import {SelectPaymentScreen} from '../screens/airtopup/SelectPaymentScreen';
@@ -14,7 +14,7 @@ export type AirtimeTopupStackParamList = {
   Success: {transactionId: string};
 };
 
-const Stack = createStackNavigator<AirtimeTopupStackParamList>();
+const Stack = createNativeStackNavigator<AirtimeTopupStackParamList>();
 
 export function AirtimeTopupNavigator() {
   return (
@@ -24,27 +24,27 @@ export function AirtimeTopupNavigator() {
         headerTitleStyle: {fontWeight: '600'},
       }}>
       <Stack.Screen 
-        name="EnterNumber" 
+        name= EnterNumber 
         component={EnterNumberScreen}
         options={{title: 'Airtime Topup'}}
       />
       <Stack.Screen 
-        name="SelectAmount" 
+        name=SelectAmount 
         component={SelectAmountScreen}
         options={{title: 'Select Amount'}}
       />
       <Stack.Screen 
-        name="SelectPayment" 
+        name=SelectPayment 
         component={SelectPaymentScreen}
         options={{title: 'Payment Method'}}
       />
       <Stack.Screen 
-        name="EnterPin" 
+        name=EnterPin 
         component={EnterPinScreen}
         options={{title: 'Enter PIN'}}
       />
       <Stack.Screen 
-        name="Success" 
+        name=Success 
         component={SuccessScreen}
         options={{headerShown: false}}
       />

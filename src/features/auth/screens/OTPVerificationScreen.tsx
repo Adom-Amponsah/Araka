@@ -1,17 +1,12 @@
 import * as React from 'react';
 import {View, TextInput, Pressable, KeyboardAvoidingView, Platform, StyleSheet, Text} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {useNavigation, useRoute, RouteProp} from '@react-navigation/native';
-import {StackNavigationProp} from '@react-navigation/stack';
-import {AuthStackParamList} from '@/shared/navigation/RootNavigator';
+import {useAppStore} from '@shared/store/appStore';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-type NavigationProp = StackNavigationProp<AuthStackParamList>;
-type OTPRouteProp = RouteProp<AuthStackParamList, 'OTPVerification'>;
-
 export function OTPVerificationScreen() {
-  const navigation = useNavigation<NavigationProp>();
-  const route = useRoute<OTPRouteProp>();
+  const verifyOtp = useAppStore((state) => state.verifyOtp);
+  const startSignup = useAppStore((state) => state.startSignup);
   const insets = useSafeAreaInsets();
   const [otp, setOtp] = React.useState(['', '', '', '', '']);
   const inputRefs = React.useRef<(TextInput | null)[]>([]);
@@ -35,7 +30,7 @@ export function OTPVerificationScreen() {
   const handleContinue = () => {
     const otpCode = otp.join('');
     console.log('OTP Code:', otpCode);
-    navigation.navigate('SignUpStep2');
+    verifyOtp();
   };
 
   const handleResend = () => {
@@ -46,13 +41,13 @@ export function OTPVerificationScreen() {
 
   return (
     <KeyboardAvoidingView style={[styles.container, {paddingTop: insets.top}]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
+      <Pressable onPress={() => startSignup()} style={styles.backButton}>
         <Ionicons name="arrow-back" size={24} color="#000" />
       </Pressable>
 
       <View style={styles.content}>
         <Text style={styles.title}>Enter Verification Code</Text>
-        <Text style={styles.subtitle}>Code sent to {route.params?.email || 'your email'}</Text>
+        <Text style={styles.subtitle}>Code sent to your email</Text>
 
         <View style={styles.otpContainer}>
           {otp.map((digit, index) => (

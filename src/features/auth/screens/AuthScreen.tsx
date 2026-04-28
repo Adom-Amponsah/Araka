@@ -1,35 +1,26 @@
 import * as React from 'react';
 import {View, Image, Dimensions, Pressable, Platform, StyleSheet, Text} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {useNavigation} from '@react-navigation/native';
-import {StackNavigationProp} from '@react-navigation/stack';
 import LinearGradient from 'react-native-linear-gradient';
-import {AuthStackParamList} from '@/shared/navigation/RootNavigator';
+import {useAppStore} from '@shared/store/appStore';
 
 const {width} = Dimensions.get('window');
 
-type NavigationProp = StackNavigationProp<AuthStackParamList>;
-
 export function AuthScreen() {
   console.log('[AuthScreen] Rendering AuthScreen');
-  const navigation = useNavigation<NavigationProp>();
+  const startSignup = useAppStore((state) => state.startSignup);
+  const startLogin = useAppStore((state) => state.startLogin);
   const insets = useSafeAreaInsets();
 
   const handleGetStarted = React.useCallback(() => {
-    const startTime = Date.now();
-    console.log('[AuthScreen] Get Started button pressed at:', startTime);
-    console.log('[AuthScreen] Navigating to SignUp...');
-    navigation.navigate('SignUp');
-    console.log('[AuthScreen] navigation.navigate() called, elapsed:', Date.now() - startTime, 'ms');
-  }, [navigation]);
+    console.log('[AuthScreen] Get Started button pressed - starting signup flow');
+    startSignup();
+  }, [startSignup]);
 
   const handleLogin = React.useCallback(() => {
-    const startTime = Date.now();
-    console.log('[AuthScreen] Login button pressed at:', startTime);
-    console.log('[AuthScreen] Navigating to Login...');
-    navigation.navigate('Login');
-    console.log('[AuthScreen] navigation.navigate() called, elapsed:', Date.now() - startTime, 'ms');
-  }, [navigation]);
+    console.log('[AuthScreen] Login button pressed - starting login flow');
+    startLogin();
+  }, [startLogin]);
 
   return (
     <View style={styles.container}>

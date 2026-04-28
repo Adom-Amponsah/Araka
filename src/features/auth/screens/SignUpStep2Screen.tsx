@@ -1,13 +1,9 @@
 import * as React from 'react';
 import {View, TextInput, Pressable, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {useNavigation} from '@react-navigation/native';
-import {StackNavigationProp} from '@react-navigation/stack';
-import {AuthStackParamList} from '@/shared/navigation/RootNavigator';
+import {useAppStore} from '@shared/store/appStore';
 import {useForm, Controller} from 'react-hook-form';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-
-type NavigationProp = StackNavigationProp<AuthStackParamList>;
 
 interface SignUpStep2FormData {
   dateOfBirth: string;
@@ -18,18 +14,21 @@ interface SignUpStep2FormData {
 }
 
 export function SignUpStep2Screen() {
-  const navigation = useNavigation<NavigationProp>();
+  const completeProfile = useAppStore((state) => state.completeProfile);
+  const verifyOtp = useAppStore((state) => state.verifyOtp);
   const insets = useSafeAreaInsets();
   const {control, handleSubmit, formState: {errors}} = useForm<SignUpStep2FormData>({mode: 'onSubmit'});
 
   const onSubmit = (data: SignUpStep2FormData) => {
-    console.log('SignUp Step 2 data:', data);
+    console.log('Profile data:', data);
+    // TODO: Call API to complete profile
+    // completeProfile(user, token);
   };
 
   return (
     <KeyboardAvoidingView style={[styles.container, {paddingTop: insets.top}]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView style={styles.scrollView} contentContainerStyle={{flexGrow: 1}} keyboardShouldPersistTaps="handled">
-        <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
+        <Pressable onPress={() => verifyOtp()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#000" />
         </Pressable>
 

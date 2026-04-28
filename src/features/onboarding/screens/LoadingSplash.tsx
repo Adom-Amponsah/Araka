@@ -1,8 +1,6 @@
 import * as React from 'react';
 import {View, Image, Dimensions, StyleSheet} from 'react-native';
-import {useNavigation} from '@react-navigation/native';
-import {StackNavigationProp} from '@react-navigation/stack';
-import {OnboardingStackParamList} from '../navigation/OnboardingNavigator';
+import {useAppStore} from '@shared/store/appStore';
 import BootSplash from 'react-native-bootsplash';
 import Animated, {
   useSharedValue,
@@ -17,16 +15,13 @@ import LinearGradient from 'react-native-linear-gradient';
 
 const {width} = Dimensions.get('window');
 
-type NavigationProp = StackNavigationProp<OnboardingStackParamList>;
-
 interface LoadingSplashProps {
-  onFinish?: () => void;
   standalone?: boolean;
 }
 
-export function LoadingSplash({onFinish, standalone = false}: LoadingSplashProps) {
+export function LoadingSplash({standalone = false}: LoadingSplashProps) {
   console.log('[LoadingSplash] Component mounting... standalone:', standalone);
-  const navigation = standalone ? null : useNavigation<NavigationProp>();
+  const completeLoadingSplash = useAppStore((state) => state.completeLoadingSplash);
   const scale = useSharedValue(0.8);
   const opacity = useSharedValue(0);
   const hasHiddenSplash = React.useRef(false);
@@ -80,20 +75,14 @@ export function LoadingSplash({onFinish, standalone = false}: LoadingSplashProps
       )
     );
 
-    // Navigate or call onFinish after 2.5 seconds
+    // After animation, complete loading splash
     const timer = setTimeout(() => {
-      console.log('[LoadingSplash] Animation complete');
-      if (standalone && onFinish) {
-        console.log('[LoadingSplash] Standalone mode - calling onFinish');
-        onFinish();
-      } else if (navigation) {
-        console.log('[LoadingSplash] Navigating to Onboarding screen');
-        navigation.replace('Onboarding');
-      }
+      console.log('[LoadingSplash] Animation complete - moving to onboarding slides');
+      completeLoadingSplash();
     }, 2500);
 
     return () => clearTimeout(timer);
-  }, [onFinish, standalone, navigation]);
+  }, [completeLoadingSplash]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{scale: scale.value}],
