@@ -15,7 +15,7 @@ import {
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-const {width} = Dimensions.get('window');
+const {width, height} = Dimensions.get('window');
 
 const CORAL = '#F27649';
 const SLATE = '#3D4A5C';
@@ -45,6 +45,17 @@ interface Category {
 }
 
 const CATEGORIES: Category[] = [
+    {
+    id: 'money',
+    label: 'Send Money',
+    icon: 'paper-plane-outline',
+    providers: [
+      {id:'m1', name:'M-Pesa',       sub:'Safaricom',      icon:'paper-plane-outline', iconBg:'#EDFBF4', iconColor:'#10B981', action:'Send'},
+      {id:'m2', name:'Orange Money', sub:'Orange',         icon:'paper-plane-outline', iconBg:'#FEF3E2', iconColor:'#D97706', action:'Send'},
+      {id:'m3', name:'afrimoney',    sub:'Sierratel',      icon:'paper-plane-outline', iconBg:'#E8F4FD', iconColor:'#2980B9', action:'Send'},
+      {id:'m4', name:'Wave',         sub:'West Africa',    icon:'paper-plane-outline', iconBg:'#F0E6FF', iconColor:'#7C3AED', action:'Send'},
+    ],
+  },
   {
     id: 'airtime',
     label: 'Airtime',
@@ -107,17 +118,6 @@ const CATEGORIES: Category[] = [
       {id:'i1', name:'Spectranet', sub:'Broadband',        icon:'globe-outline', iconBg:'#E8F4FD', iconColor:'#2980B9', action:'Renew'},
       {id:'i2', name:'Smile',      sub:'4G LTE',           icon:'globe-outline', iconBg:'#FFF8E6', iconColor:'#F59E0B', action:'Renew'},
       {id:'i3', name:'Swift',      sub:'WiMAX',            icon:'globe-outline', iconBg:'#FEE8DF', iconColor:'#C0392B', action:'Renew'},
-    ],
-  },
-  {
-    id: 'money',
-    label: 'Send Money',
-    icon: 'paper-plane-outline',
-    providers: [
-      {id:'m1', name:'M-Pesa',       sub:'Safaricom',      icon:'paper-plane-outline', iconBg:'#EDFBF4', iconColor:'#10B981', action:'Send'},
-      {id:'m2', name:'Orange Money', sub:'Orange',         icon:'paper-plane-outline', iconBg:'#FEF3E2', iconColor:'#D97706', action:'Send'},
-      {id:'m3', name:'afrimoney',    sub:'Sierratel',      icon:'paper-plane-outline', iconBg:'#E8F4FD', iconColor:'#2980B9', action:'Send'},
-      {id:'m4', name:'Wave',         sub:'West Africa',    icon:'paper-plane-outline', iconBg:'#F0E6FF', iconColor:'#7C3AED', action:'Send'},
     ],
   },
 ];
@@ -376,6 +376,7 @@ export function ServicesScreen() {
   const insets = useSafeAreaInsets();
   const [activeId, setActiveId] = React.useState(CATEGORIES[0].id);
   const [animKey, setAnimKey]   = React.useState(CATEGORIES[0].id);
+  const [contentHeight, setContentHeight] = React.useState(0);
 
   // Entrance animations — same pattern as HomeScreen
   const heroFade  = React.useRef(new Animated.Value(0)).current;
@@ -409,6 +410,10 @@ export function ServicesScreen() {
   for (let i = 0; i < activeCategory.providers.length; i += 2) {
     providerPairs.push(activeCategory.providers.slice(i, i + 2));
   }
+
+  // Calculate dynamic padding based on actual content
+  const minRequiredHeight = height * 0.7;
+  const dynamicPadding = Math.max(32, minRequiredHeight - contentHeight);
 
   return (
     <View style={s.root}>
@@ -445,7 +450,7 @@ export function ServicesScreen() {
             WHITE CARD
         ════════════════════════ */}
         <Animated.View
-          style={[s.card, {transform: [{translateY: cardSlide}], opacity: cardFade}]}>
+          style={[s.card, {transform: [{translateY: cardSlide}], opacity: cardFade, paddingBottom: dynamicPadding}]}>
 
           <View style={s.handle} />
 
@@ -477,7 +482,9 @@ export function ServicesScreen() {
           </View>
 
           {/* Provider grid — 2 columns */}
-          <View style={s.grid}>
+          <View 
+            style={s.grid}
+            onLayout={(e) => setContentHeight(e.nativeEvent.layout.height + 400)}>
             {providerPairs.map((pair, rowIdx) => (
               <View key={rowIdx} style={s.gridRow}>
                 {pair.map((provider, colIdx) => (
@@ -510,7 +517,7 @@ const s = StyleSheet.create({
   hero: {
     backgroundColor: SLATE,
     paddingHorizontal: 24,
-    paddingBottom: 72,
+    paddingBottom: 64,
   },
   ringOuter: {
     position: 'absolute', top: -28, right: -48,
@@ -542,13 +549,11 @@ const s = StyleSheet.create({
     shadowOpacity: 0.20, shadowRadius: 28, elevation: 22,
   },
   card: {
-    flex: 1,
     backgroundColor: OFF,
     borderTopLeftRadius: CARD_RADIUS,
     borderTopRightRadius: CARD_RADIUS,
     marginTop: -CARD_RADIUS,
     paddingTop: 16,
-    paddingBottom: 32,
   },
   handle: {
     width: 40, height: 4, borderRadius: 2,

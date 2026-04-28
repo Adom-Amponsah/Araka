@@ -10,6 +10,7 @@ import {
   Text,
   Animated,
   Easing,
+  Dimensions,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useAppStore} from '@shared/store/appStore';
@@ -118,9 +119,8 @@ const floatStyles = StyleSheet.create({
     borderRadius: 14,
     height: 62,
     flexDirection: 'row',
-    alignItems: 'flex-end',
-    paddingBottom: 10,
-    paddingRight: 16,
+    alignItems: 'center',
+    paddingHorizontal: 16,
     overflow: 'hidden',
     shadowColor: '#B8C4D0',
     shadowOffset: {width: 0, height: 2},
@@ -128,10 +128,11 @@ const floatStyles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 1,
   },
-  iconWrap: {width: 48, alignItems: 'center', paddingBottom: 2},
+  iconWrap: {width: 40, alignItems: 'center', justifyContent: 'center'},
   label: {
     position: 'absolute',
-    left: 48,
+    left: 56,
+    top: 6,
     fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
     letterSpacing: 0.2,
   },
@@ -139,7 +140,7 @@ const floatStyles = StyleSheet.create({
     flex: 1,
     fontSize: 15,
     color: '#1A2535',
-    paddingTop: 18,
+    paddingTop: 20,
     fontFamily: Platform.OS === 'ios' ? 'Helvetica Neue' : 'sans-serif',
     letterSpacing: 0.3,
   },
@@ -164,7 +165,7 @@ const floatStyles = StyleSheet.create({
 function StepDots({active}: {active: number}) {
   return (
     <View style={dotStyles.row}>
-      {[0, 1, 2].map(i => (
+      {[0, 1].map(i => (
         <View
           key={i}
           style={[
@@ -201,6 +202,7 @@ const dotStyles = StyleSheet.create({
 const SLATE = '#3D4A5C';
 const CORAL = '#F27649';
 const CARD_RADIUS = 36;
+const {height} = Dimensions.get('window');
 
 export function SignUpScreen() {
   const insets = useSafeAreaInsets();
@@ -279,9 +281,11 @@ export function SignUpScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={{flexGrow: 1}}
+        contentContainerStyle={{flexGrow: 1, backgroundColor: SLATE}}
         keyboardShouldPersistTaps="handled"
-        bounces={false}>
+        keyboardDismissMode="on-drag"
+        bounces={false}
+        automaticallyAdjustKeyboardInsets={true}>
 
         {/* ── HEADER ── */}
         <View style={[styles.header, {paddingTop: Math.max(insets.top, 20) + 32}]}>
@@ -293,7 +297,7 @@ export function SignUpScreen() {
             {/* Step indicator */}
             <View style={styles.stepRow}>
               <StepDots active={0} />
-              <Text style={styles.stepLabel}>Step 1 of 3</Text>
+              <Text style={styles.stepLabel}>Step 1 of 2</Text>
             </View>
 
             <Text style={styles.headline}>Create your{'\n'}account.</Text>
@@ -456,21 +460,21 @@ const styles = StyleSheet.create({
   },
   ringDecor: {
     position: 'absolute',
-    bottom: 10,
-    left: -50,
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    borderWidth: 30,
+    top: -28,
+    right: -48,
+    width: 190,
+    height: 190,
+    borderRadius: 95,
+    borderWidth: 32,
     borderColor: 'rgba(242, 118, 73, 0.10)',
   },
   ringDecorInner: {
     position: 'absolute',
-    bottom: 40,
-    left: 20,
-    width: 90,
-    height: 90,
-    borderRadius: 45,
+    top: 22,
+    right: 12,
+    width: 96,
+    height: 96,
+    borderRadius: 48,
     borderWidth: 1.5,
     borderColor: 'rgba(242, 118, 73, 0.22)',
   },
@@ -540,13 +544,14 @@ const styles = StyleSheet.create({
 
   // ── Card ──
   card: {
-    flex: 1,
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: CARD_RADIUS,
     borderTopRightRadius: CARD_RADIUS,
     paddingHorizontal: 28,
     paddingTop: 28,
+    paddingBottom: 200,
     marginTop: -CARD_RADIUS,
+    minHeight: height,
     shadowColor: '#1A2535',
     shadowOffset: {width: 0, height: -8},
     shadowOpacity: 0.18,

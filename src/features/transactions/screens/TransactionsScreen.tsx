@@ -475,7 +475,6 @@ function TxnRow({txn, onPress, index}: {txn:Transaction;onPress:()=>void;index:n
           <Text style={[tw.amount,{color: isOut ? DARK : GREEN}]}>
             {isOut?'−':'+'}GHS {txn.amount.toFixed(2)}
           </Text>
-          <Ionicons name="chevron-forward" size={12} color="#D1D5DB"/>
         </View>
       </Pressable>
     </Animated.View>
@@ -692,7 +691,7 @@ const s = StyleSheet.create({
 
   hero:{
     backgroundColor:SLATE,
-    paddingHorizontal:24,paddingBottom:72,
+    paddingHorizontal:24,paddingBottom:56,
   },
   ringOuter:{
     position:'absolute',top:-28,right:-48,

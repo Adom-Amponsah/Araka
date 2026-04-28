@@ -7,9 +7,11 @@ import {
   StyleSheet,
   Platform,
   Animated,
+  Easing,
   Dimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const { width } = Dimensions.get('window');
@@ -169,6 +171,7 @@ const ben = StyleSheet.create({
 // ASYMMETRICAL BENTO ACTIONS (Updated with Categories)
 // ─────────────────────────────────────────────
 function BentoGrid() {
+  const navigation = useNavigation();
   const animStyle = useSpringEntrance(300, 40);
   const scale1 = React.useRef(new Animated.Value(1)).current;
   const scale2 = React.useRef(new Animated.Value(1)).current;
@@ -186,8 +189,8 @@ function BentoGrid() {
     <Animated.View style={[bento.container, animStyle]}>
       {/* Section Header */}
       <View style={bento.headerRow}>
-        <Text style={bento.title}>Most Used</Text>
-        <Pressable hitSlop={10}>
+        <Text style={bento.title}>Featured Services</Text>
+        <Pressable hitSlop={10} onPress={() => navigation.navigate('Services' as never)}>
           <Text style={bento.seeAll}>See all</Text>
         </Pressable>
       </View>
@@ -259,7 +262,7 @@ function AdvertisedBanner() {
     <Animated.View style={[promo.wrap, animStyle]}>
       <View style={promo.bgDark}>
         <View style={promo.content}>
-          <Text style={promo.eyebrow}>FEATURED</Text>
+          <Text style={promo.eyebrow}>ADVERTISED</Text>
           <Text style={promo.title}>Société Nationale{'\n'}d'Électricité</Text>
           <Pressable style={promo.btn}>
             <Text style={promo.btnText}>Quick Pay</Text>
@@ -291,37 +294,58 @@ const promo = StyleSheet.create({
 // RECENT TRANSACTIONS
 // ─────────────────────────────────────────────
 const TRANSACTIONS = [
-  { id: '1', label: 'Electricity Top-up', sub: 'Today, 09:14 AM', amount: '-GHS 45.00', icon: 'flash' },
-  { id: '2', label: 'Wallet Credit', sub: 'Mon, Apr 21', amount: '+GHS 500.00', icon: 'arrow-down' },
-  { id: '3', label: 'Airtime – MTN', sub: 'Yesterday, 3:02 PM', amount: '-GHS 20.00', icon: 'phone-portrait' },
+  { id: '1', label: 'Electricity Top-up', provider: 'SNEL', amount: 45.00, type: 'out', icon: 'flash-outline', iconBg: '#FEF3E2', iconColor: '#D97706' },
+  { id: '2', label: 'Wallet Credit', provider: 'Bank Transfer', amount: 500.00, type: 'in', icon: 'arrow-down-outline', iconBg: '#EDFBF4', iconColor: '#10B981' },
+  { id: '3', label: 'MTN Airtime', provider: 'MTN Mobile', amount: 20.00, type: 'out', icon: 'phone-portrait-outline', iconBg: '#FFF8E6', iconColor: '#F59E0B' },
 ];
 
-function TxnRow({ label, sub, amount, icon, index }: any) {
-  const isPositive = amount.startsWith('+');
-  const animStyle = useSpringEntrance(500 + index * 100, 20);
+function TxnRow({ label, provider, amount, type, icon, iconBg, iconColor, index }: any) {
+  const fadeIn = React.useRef(new Animated.Value(0)).current;
+  const slideX = React.useRef(new Animated.Value(16)).current;
+  const scale = React.useRef(new Animated.Value(1)).current;
+
+  React.useEffect(() => {
+    setTimeout(() => {
+      Animated.parallel([
+        Animated.timing(fadeIn, { toValue: 1, duration: 240, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+        Animated.timing(slideX, { toValue: 0, duration: 240, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+      ]).start();
+    }, 500 + index * 40);
+  }, []);
+
+  const pressIn = () => Animated.spring(scale, { toValue: 0.97, useNativeDriver: true, damping: 15, stiffness: 300 }).start();
+  const pressOut = () => Animated.spring(scale, { toValue: 1, useNativeDriver: true, damping: 10, stiffness: 200 }).start();
+
+  const isOut = type === 'out';
 
   return (
-    <Animated.View style={[tx.row, animStyle]}>
-      <View style={[tx.iconContainer, isPositive && tx.iconPositive]}>
-        <Ionicons name={icon} size={18} color={isPositive ? '#10B981' : DARK} />
-      </View>
-      <View style={tx.info}>
-        <Text style={tx.label}>{label}</Text>
-        <Text style={tx.sub}>{sub}</Text>
-      </View>
-      <Text style={[tx.amount, isPositive && { color: '#10B981' }]}>{amount}</Text>
+    <Animated.View style={{ opacity: fadeIn, transform: [{ translateX: slideX }, { scale }] }}>
+      <Pressable onPressIn={pressIn} onPressOut={pressOut} style={tx.row}>
+        <View style={[tx.iconBadge, { backgroundColor: iconBg }]}>
+          <Ionicons name={icon as any} size={19} color={iconColor} />
+        </View>
+        <View style={tx.info}>
+          <Text style={tx.label} numberOfLines={1}>{label}</Text>
+          <Text style={tx.sub}>{provider}</Text>
+        </View>
+        <View style={tx.right}>
+          <Text style={[tx.amount, { color: isOut ? DARK : '#10B981' }]}>
+            {isOut ? '−' : '+'}GHS {amount.toFixed(2)}
+          </Text>
+        </View>
+      </Pressable>
     </Animated.View>
   );
 }
 
 const tx = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
-  iconContainer: { width: 48, height: 48, borderRadius: 20, backgroundColor: OFF_SURFACE, alignItems: 'center', justifyContent: 'center', marginRight: 16 },
-  iconPositive: { backgroundColor: '#EDFBF4' },
+  row: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 16, padding: 14, marginBottom: 8, gap: 12, shadowColor: DARK, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.055, shadowRadius: 8, elevation: 2 },
+  iconBadge: { width: 44, height: 44, borderRadius: 13, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   info: { flex: 1 },
-  label: { color: DARK, fontSize: 15, fontWeight: '700', fontFamily: SANS, letterSpacing: -0.3, marginBottom: 2 },
-  sub: { color: '#8A94A6', fontSize: 12, fontFamily: SANS },
-  amount: { fontSize: 16, fontWeight: '800', fontFamily: SANS, letterSpacing: -0.5, color: DARK },
+  label: { color: DARK, fontSize: 14, fontWeight: '600', fontFamily: SANS, letterSpacing: 0.1, marginBottom: 3 },
+  sub: { color: '#9CA3AF', fontSize: 11, fontFamily: SANS },
+  right: { alignItems: 'flex-end', gap: 4 },
+  amount: { fontSize: 14, fontWeight: '700', fontFamily: SANS, letterSpacing: 0.1 },
 });
 
 // ─────────────────────────────────────────────
@@ -329,17 +353,16 @@ const tx = StyleSheet.create({
 // ─────────────────────────────────────────────
 export function HomeScreen() {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation();
   
   // Hero animations
   const heroFade = React.useRef(new Animated.Value(0)).current;
   const heroY = React.useRef(new Animated.Value(-12)).current;
-  const lineWidth = React.useRef(new Animated.Value(0)).current;
 
   React.useEffect(() => {
     Animated.parallel([
       Animated.timing(heroFade, { toValue: 1, duration: 400, useNativeDriver: true }),
       Animated.spring(heroY, { toValue: 0, tension: 50, friction: 7, useNativeDriver: true }),
-      Animated.spring(lineWidth, { toValue: 48, tension: 40, friction: 6, delay: 200, useNativeDriver: false }), 
     ]).start();
   }, []);
 
@@ -352,28 +375,19 @@ export function HomeScreen() {
         {/* HERO SECTION */}
         <View style={[s.hero, { paddingTop: Math.max(insets.top, 20) + 8 }]}>
           <View style={s.ringOuter} />
+          <View style={s.ringInner} />
           
           <Animated.View style={[s.topBar, { opacity: heroFade, transform: [{ translateY: heroY }] }]}>
             <View style={s.wordRow}>
               <View style={s.wordDot} />
               <Text style={s.wordmark}>ARAKA</Text>
             </View>
-            <View style={s.topRight}>
-              <Pressable style={s.iconBtn}>
-                <Ionicons name="notifications-outline" size={22} color="#FFF" />
-                <View style={s.notifDot} />
-              </Pressable>
-              <Pressable style={s.avatar}>
-                <Text style={s.avatarText}>A</Text>
-              </Pressable>
-            </View>
           </Animated.View>
 
           <Animated.View style={{ opacity: heroFade, transform: [{ translateY: heroY }] }}>
-            <Text style={s.greetSub}>Good morning</Text>
+            <Text style={s.greetSub}>Welcome</Text>
             <Text style={s.greetName}>Adom.</Text>
-            {/* The Animated Orange Line */}
-            <Animated.View style={[s.orangeLine, { width: lineWidth }]} />
+            <View style={s.greetRule} />
           </Animated.View>
         </View>
 
@@ -393,7 +407,7 @@ export function HomeScreen() {
           <View style={s.txnSection}>
             <Animated.View style={[s.sectionHeader, txnHeaderAnim]}>
               <Text style={s.sectionTitle}>Recent Activity</Text>
-              <Pressable hitSlop={10}><Text style={s.sectionCta}>View all</Text></Pressable>
+              <Pressable hitSlop={10} onPress={() => navigation.navigate('Transactions' as never)}><Text style={s.sectionCta}>View all</Text></Pressable>
             </Animated.View>
             
             {TRANSACTIONS.map((t, i) => (
@@ -411,22 +425,17 @@ const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: SLATE },
   scroll: { flex: 1 },
 
-  hero: { backgroundColor: SLATE, paddingHorizontal: 24, paddingBottom: 48 },
-  ringOuter: { position: 'absolute', top: -40, right: -60, width: 240, height: 240, borderRadius: 120, borderWidth: 40, borderColor: 'rgba(242,118,73,0.05)' },
-  topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 36 },
-  wordRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  hero: { backgroundColor: SLATE, paddingHorizontal: 24, paddingBottom: 36 },
+  ringOuter: { position: 'absolute', top: -28, right: -48, width: 190, height: 190, borderRadius: 95, borderWidth: 32, borderColor: 'rgba(242,118,73,0.10)' },
+  ringInner: { position: 'absolute', top: 22, right: 12, width: 96, height: 96, borderRadius: 48, borderWidth: 1.5, borderColor: 'rgba(242,118,73,0.22)' },
+  topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28 },
+  wordRow: { flexDirection: 'row', alignItems: 'center', gap: 7 },
   wordDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: CORAL },
-  wordmark: { color: '#FFFFFF', fontSize: 15, fontWeight: '900', letterSpacing: 4, fontFamily: SANS },
-  topRight: { flexDirection: 'row', alignItems: 'center', gap: 16 },
-  iconBtn: { padding: 4 },
-  notifDot: { position: 'absolute', top: 4, right: 6, width: 8, height: 8, borderRadius: 4, backgroundColor: CORAL, borderWidth: 2, borderColor: SLATE },
-  avatar: { width: 40, height: 40, borderRadius: 14, backgroundColor: CORAL, alignItems: 'center', justifyContent: 'center' },
-  avatarText: { color: '#FFFFFF', fontSize: 18, fontWeight: '800', fontFamily: SANS },
+  wordmark: { color: '#FFFFFF', fontSize: 14, fontWeight: '800', letterSpacing: 4, fontFamily: SANS },
   
-  greetSub: { color: 'rgba(255,255,255,0.6)', fontSize: 14, fontFamily: SANS, fontWeight: '600', letterSpacing: 0.5, marginBottom: 4 },
-  greetName: { color: '#FFFFFF', fontSize: 44, fontWeight: '700', fontFamily: SERIF, letterSpacing: -1.5, lineHeight: 48 },
-  
-  orangeLine: { height: 4, backgroundColor: CORAL, borderRadius: 2, marginTop: 12 },
+  greetSub: { color: 'rgba(255,255,255,0.42)', fontSize: 14, fontFamily: SANS, letterSpacing: 0.4, marginBottom: 4 },
+  greetName: { color: '#FFFFFF', fontSize: 40, fontWeight: '700', fontFamily: SERIF, letterSpacing: -1, lineHeight: 44 },
+  greetRule: { width: 36, height: 3, backgroundColor: CORAL, borderRadius: 2, marginTop: 12 },
 
   bodyCanvas: { backgroundColor: OFF_SURFACE, borderTopLeftRadius: 36, borderTopRightRadius: 36, flex: 1, paddingTop: 32, paddingBottom: 60 },
 

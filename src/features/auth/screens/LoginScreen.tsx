@@ -10,6 +10,7 @@ import {
   Text,
   Animated,
   Easing,
+  Dimensions,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useAppStore} from '@shared/store/appStore';
@@ -235,9 +236,11 @@ export function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={{flexGrow: 1}}
+        contentContainerStyle={{flexGrow: 1, backgroundColor: SLATE}}
         keyboardShouldPersistTaps="handled"
-        bounces={false}>
+        keyboardDismissMode="on-drag"
+        bounces={false}
+        automaticallyAdjustKeyboardInsets={true}>
 
         {/* ── HEADER ZONE ── */}
         <View
@@ -373,6 +376,7 @@ export function LoginScreen() {
 const SLATE = '#3D4A5C';   // slightly deeper than original for contrast
 const CORAL = '#F27649';
 const CARD_RADIUS = 36;
+const {height} = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   root: {
@@ -477,13 +481,14 @@ const styles = StyleSheet.create({
 
   // ── Card ──
   card: {
-    flex: 1,
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: CARD_RADIUS,
     borderTopRightRadius: CARD_RADIUS,
     paddingHorizontal: 28,
     paddingTop: 28,
+    paddingBottom: 200,
     marginTop: -CARD_RADIUS, // pulls card up to overlap header curve
+    minHeight: height,
     // Shadow that peeks above the curve
     shadowColor: '#1A2535',
     shadowOffset: {width: 0, height: -8},
