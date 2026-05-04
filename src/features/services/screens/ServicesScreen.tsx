@@ -10,10 +10,16 @@ import {
   Animated,
   Easing,
   Dimensions,
-  FlatList,
+  Modal,
+  TouchableWithoutFeedback,
 } from 'react-native';
+import {useNavigation} from '@react-navigation/native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import {SERVICE_CATEGORIES, ServiceProviderConfig} from '../registry/serviceRegistry';
+import {useAirtimeTopupFlowStore} from '../store/airtimeTopupFlowStore';
+import {useServiceSessionStore} from '../store/serviceSessionStore';
+import {useTransferFlowStore} from '../store/transferFlowStore';
 
 const {width, height} = Dimensions.get('window');
 
@@ -46,8 +52,8 @@ interface Category {
 
 const CATEGORIES: Category[] = [
     {
-    id: 'money',
-    label: 'Send Money',
+    id: 'transfer',
+    label: 'Transfer',
     icon: 'paper-plane-outline',
     providers: [
       {id:'m1', name:'M-Pesa',       sub:'Safaricom',      icon:'paper-plane-outline', iconBg:'#EDFBF4', iconColor:'#10B981', action:'Send'},
@@ -129,10 +135,12 @@ function ProviderCard({
   provider,
   index,
   animKey,
+  onPress,
 }: {
   provider: Provider;
   index: number;
   animKey: string; // changes when category changes → re-triggers animation
+  onPress: () => void;
 }) {
   const fadeIn = React.useRef(new Animated.Value(0)).current;
   const slideY = React.useRef(new Animated.Value(18)).current;
@@ -166,7 +174,7 @@ function ProviderCard({
         pc.wrap,
         {opacity: fadeIn, transform: [{translateY: slideY}, {scale}]},
       ]}>
-      <Pressable onPressIn={pressIn} onPressOut={pressOut} style={pc.card}>
+      <Pressable onPress={onPress} onPressIn={pressIn} onPressOut={pressOut} style={pc.card}>
         {/* Icon */}
         <View style={[pc.iconBadge, {backgroundColor: provider.iconBg}]}>
           <Ionicons name={provider.icon as any} size={22} color={provider.iconColor} />
@@ -373,10 +381,15 @@ const sb = StyleSheet.create({
 const CARD_RADIUS = 36;
 
 export function ServicesScreen() {
+  const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const [activeId, setActiveId] = React.useState(CATEGORIES[0].id);
   const [animKey, setAnimKey]   = React.useState(CATEGORIES[0].id);
   const [contentHeight, setContentHeight] = React.useState(0);
+  const [unavailableProvider, setUnavailableProvider] = React.useState<Provider | null>(null);
+  const openServiceSession = useServiceSessionStore(s => s.openServiceSession);
+  const startAirtimeTopup = useAirtimeTopupFlowStore(s => s.start);
+  const startTransfer = useTransferFlowStore(s => s.start);
 
   // Entrance animations — same pattern as HomeScreen
   const heroFade  = React.useRef(new Animated.Value(0)).current;
@@ -404,6 +417,42 @@ export function ServicesScreen() {
   };
 
   const activeCategory = CATEGORIES.find(c => c.id === activeId)!;
+
+  const resolveProviderConfig = (
+    category: Category,
+    provider: Provider,
+  ): ServiceProviderConfig | undefined => {
+    const registryCategory = SERVICE_CATEGORIES.find(c => c.id === category.id);
+    return registryCategory?.providers.find(item => item.name === provider.name);
+  };
+
+  const handleProviderPress = (category: Category, provider: Provider) => {
+    const providerConfig = resolveProviderConfig(category, provider);
+
+    if (!providerConfig || !providerConfig.enabled) {
+      setUnavailableProvider(provider);
+      return;
+    }
+
+    const session = openServiceSession(providerConfig);
+
+    if (session.flowId === 'airtimeTopup') {
+      startAirtimeTopup(session);
+    }
+
+    if (session.flowId === 'transfer') {
+      startTransfer(session);
+    }
+
+    const parentNavigation = navigation.getParent();
+
+    if (parentNavigation) {
+      parentNavigation.navigate('ServiceFlow');
+      return;
+    }
+
+    navigation.navigate('ServiceFlow');
+  };
 
   // Pair providers into rows of 2
   const providerPairs: Provider[][] = [];
@@ -493,6 +542,7 @@ export function ServicesScreen() {
                     provider={provider}
                     index={rowIdx * 2 + colIdx}
                     animKey={animKey}
+                    onPress={() => handleProviderPress(activeCategory, provider)}
                   />
                 ))}
                 {/* If odd provider, fill with empty space */}
@@ -505,7 +555,87 @@ export function ServicesScreen() {
 
         </Animated.View>
       </ScrollView>
+      <UnavailableServiceSheet
+        provider={unavailableProvider}
+        onClose={() => setUnavailableProvider(null)}
+      />
     </View>
+  );
+}
+
+function UnavailableServiceSheet({
+  provider,
+  onClose,
+}: {
+  provider: Provider | null;
+  onClose: () => void;
+}) {
+  const slideAnim = React.useRef(new Animated.Value(420)).current;
+  const backdropAnim = React.useRef(new Animated.Value(0)).current;
+  const insets = useSafeAreaInsets();
+
+  React.useEffect(() => {
+    if (provider) {
+      Animated.parallel([
+        Animated.spring(slideAnim, {
+          toValue: 0,
+          useNativeDriver: true,
+          damping: 22,
+          stiffness: 260,
+        }),
+        Animated.timing(backdropAnim, {
+          toValue: 1,
+          duration: 240,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else {
+      Animated.parallel([
+        Animated.timing(slideAnim, {
+          toValue: 420,
+          duration: 220,
+          easing: Easing.in(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(backdropAnim, {
+          toValue: 0,
+          duration: 180,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [backdropAnim, provider, slideAnim]);
+
+  if (!provider) {
+    return null;
+  }
+
+  return (
+    <Modal visible transparent animationType="none" onRequestClose={onClose}>
+      <TouchableWithoutFeedback onPress={onClose}>
+        <Animated.View style={[us.backdrop, {opacity: backdropAnim}]} />
+      </TouchableWithoutFeedback>
+      <Animated.View
+        style={[
+          us.sheet,
+          {
+            transform: [{translateY: slideAnim}],
+            paddingBottom: Math.max(insets.bottom, 22),
+          },
+        ]}>
+        <View style={us.handle} />
+        <View style={[us.iconWrap, {backgroundColor: provider.iconBg}]}>
+          <Ionicons name={provider.icon as any} size={24} color={provider.iconColor} />
+        </View>
+        <Text style={us.title}>{provider.name} is coming soon</Text>
+        <Text style={us.body}>
+          We're preparing this service for a smoother payment experience. Try Airtime or Transfer for now.
+        </Text>
+        <Pressable onPress={onClose} style={us.button}>
+          <Text style={us.buttonText}>Got it</Text>
+        </Pressable>
+      </Animated.View>
+    </Modal>
   );
 }
 
@@ -605,5 +735,83 @@ const s = StyleSheet.create({
   gridRow: {
     flexDirection: 'row',
     gap: 12,
+  },
+});
+
+const us = StyleSheet.create({
+  backdrop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(26,37,53,0.55)',
+  },
+  sheet: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: CARD_RADIUS,
+    borderTopRightRadius: CARD_RADIUS,
+    paddingHorizontal: 24,
+    paddingTop: 14,
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: {width: 0, height: -12},
+    shadowOpacity: 0.18,
+    shadowRadius: 28,
+    elevation: 24,
+  },
+  handle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#D1D9E0',
+    marginBottom: 24,
+  },
+  iconWrap: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  title: {
+    color: DARK,
+    fontSize: 22,
+    fontWeight: '700',
+    fontFamily: SERIF,
+    textAlign: 'center',
+    letterSpacing: -0.4,
+    marginBottom: 8,
+  },
+  body: {
+    color: '#8A94A6',
+    fontSize: 13,
+    fontFamily: SANS,
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 22,
+  },
+  button: {
+    alignSelf: 'stretch',
+    backgroundColor: CORAL,
+    borderRadius: 14,
+    paddingVertical: 15,
+    alignItems: 'center',
+    shadowColor: CORAL,
+    shadowOffset: {width: 0, height: 6},
+    shadowOpacity: 0.20,
+    shadowRadius: 14,
+    elevation: 6,
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '800',
+    fontFamily: SANS,
   },
 });

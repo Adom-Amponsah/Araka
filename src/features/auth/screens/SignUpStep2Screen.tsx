@@ -10,7 +10,6 @@ import {
   Text,
   Animated,
   Easing,
-  Dimensions,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useAppStore} from '@shared/store/appStore';
@@ -33,7 +32,13 @@ const DARK  = '#1A2535';
 const SERIF = Platform.OS === 'ios' ? 'Georgia' : 'serif';
 const SANS  = Platform.OS === 'ios' ? 'Helvetica Neue' : 'sans-serif';
 const CARD_RADIUS = 36;
-const {height} = Dimensions.get('window');
+
+const countryCodeToFlagEmoji = (code: string) =>
+  code
+    .toUpperCase()
+    .replace(/./g, char =>
+      String.fromCodePoint(127397 + char.charCodeAt(0)),
+    );
 
 // ─────────────────────────────────────────────
 // Reusable FloatingInput — same as Login/SignUp
@@ -66,7 +71,7 @@ function FloatingInput({
         duration: 200, easing: Easing.out(Easing.quad), useNativeDriver: false,
       }),
     ]).start();
-  }, [focused, hasContent]);
+  }, [focused, glowAnim, hasContent, labelAnim]);
 
   const labelTop   = labelAnim.interpolate({inputRange:[0,1], outputRange:[18,6]});
   const labelSize  = labelAnim.interpolate({inputRange:[0,1], outputRange:[15,11]});
@@ -241,7 +246,7 @@ export function SignUpStep2Screen() {
   const startSignup = useAppStore((state) => state.startSignup);
   const insets    = useSafeAreaInsets();
 
-  const {control, handleSubmit, formState, setValue} = useForm<SignUpStep2FormData>({mode:'onChange'});
+  const {control, handleSubmit, formState} = useForm<SignUpStep2FormData>({mode:'onChange'});
   const {errors} = formState;
 
   // Date picker state
@@ -250,7 +255,7 @@ export function SignUpStep2Screen() {
 
   // Country picker state
   const [showCountryPicker, setShowCountryPicker] = React.useState(false);
-  const [countryCode, setCountryCode] = React.useState<string>('');
+  const [countryCode, setCountryCode] = React.useState<string | undefined>();
   const [countryFlag, setCountryFlag] = React.useState<string>('');
 
   // Entrance — same 3-beat pattern as Login/SignUp
@@ -274,7 +279,7 @@ export function SignUpStep2Screen() {
         }),
       ]),
     ]).start();
-  }, []);
+  }, [cardFade, cardSlide, heroFade]);
 
   const onSubmit = (data: SignUpStep2FormData) => {
     console.log('Profile data:', data);
@@ -448,13 +453,15 @@ export function SignUpStep2Screen() {
                         onSelect={(country: Country) => {
                           onChange(country.name);
                           setCountryCode(country.cca2);
-                          setCountryFlag(country.flag || '');
+                          setCountryFlag(countryCodeToFlagEmoji(country.cca2));
                           setShowCountryPicker(false);
                         }}
                         withFilter
+                        withEmoji
                         withFlag
                         withCountryNameButton
                         withAlphaFilter
+                        withCloseButton={false}
                         containerButtonStyle={{display: 'none'}}
                       />
                     )}
