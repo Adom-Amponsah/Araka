@@ -292,6 +292,10 @@ function CustomTabBar({state, descriptors, navigation}: BottomTabBarProps) {
 
       <View style={bar.row}>
         {state.routes.map((route, index) => {
+          if (route.name === 'Pay') {
+            return null;
+          }
+
           const tab = TABS[index];
           const isActive = state.index === index;
           const isFab = tab.isFab;

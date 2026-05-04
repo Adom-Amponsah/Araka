@@ -10,7 +10,6 @@ import {
   View,
   Animated,
   Easing,
-  Dimensions,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -20,8 +19,6 @@ import {
   useAirtimeTopupFlowStore,
 } from '../store/airtimeTopupFlowStore';
 import {useServiceSessionStore} from '../store/serviceSessionStore';
-
-const {width} = Dimensions.get('window');
 
 const CORAL  = '#F27649';
 const SLATE  = '#3D4A5C';
@@ -78,7 +75,7 @@ function FadeSlideIn({
 // ─────────────────────────────────────────────
 // Step indicator dots
 // ─────────────────────────────────────────────
-const STEPS = ['details', 'paymentMethod', 'mobileMoneyDetails', 'paymentConfirmation'];
+const STEPS = ['details', 'review', 'paymentMethod', 'mobileMoneyDetails', 'paymentConfirmation'];
 
 function StepDots({currentStep}: {currentStep: string}) {
   const stepIndex = STEPS.indexOf(currentStep);
@@ -312,10 +309,28 @@ const sc = StyleSheet.create({
 // ─────────────────────────────────────────────
 // Primary / secondary buttons
 // ─────────────────────────────────────────────
-function PrimaryButton({label, onPress, icon}: {label: string; onPress: () => void; icon?: string}) {
+function PrimaryButton({
+  label,
+  onPress,
+  icon,
+  disabled = false,
+}: {
+  label: string;
+  onPress: () => void;
+  icon?: string;
+  disabled?: boolean;
+}) {
   const scale = React.useRef(new Animated.Value(1)).current;
-  const pressIn  = () => Animated.spring(scale, {toValue: 0.96, useNativeDriver: true, damping: 15, stiffness: 300}).start();
-  const pressOut = () => Animated.spring(scale, {toValue: 1,    useNativeDriver: true, damping: 10, stiffness: 200}).start();
+  const pressIn  = () => {
+    if (!disabled) {
+      Animated.spring(scale, {toValue: 0.96, useNativeDriver: true, damping: 15, stiffness: 300}).start();
+    }
+  };
+  const pressOut = () => {
+    if (!disabled) {
+      Animated.spring(scale, {toValue: 1, useNativeDriver: true, damping: 10, stiffness: 200}).start();
+    }
+  };
 
   return (
     <Animated.View style={{transform: [{scale}]}}>
@@ -323,9 +338,11 @@ function PrimaryButton({label, onPress, icon}: {label: string; onPress: () => vo
         onPress={onPress}
         onPressIn={pressIn}
         onPressOut={pressOut}
-        style={btn.primary}>
-        <Text style={btn.primaryText}>{label}</Text>
-        {icon && <Ionicons name={icon as any} size={18} color="#FFFFFF" />}
+        disabled={disabled}
+        accessibilityState={{disabled}}
+        style={[btn.primary, disabled && btn.primaryDisabled]}>
+        <Text style={[btn.primaryText, disabled && btn.primaryTextDisabled]}>{label}</Text>
+        {icon && <Ionicons name={icon as any} size={18} color={disabled ? '#9CA3AF' : '#FFFFFF'} />}
       </Pressable>
     </Animated.View>
   );
@@ -366,6 +383,12 @@ const btn = StyleSheet.create({
     elevation: 5,
   },
   primaryText:   {color: '#FFFFFF', fontSize: 16, fontWeight: '800', fontFamily: SANS, letterSpacing: 0.3},
+  primaryDisabled: {
+    backgroundColor: '#E5EAF0',
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  primaryTextDisabled: {color: '#9CA3AF'},
   secondary:     {borderRadius: 18, paddingVertical: 16, alignItems: 'center'},
   secondaryText: {color: SLATE, fontSize: 14, fontWeight: '700', fontFamily: SANS},
   errorWrap:     {flexDirection: 'row', alignItems: 'center', gap: 6},
@@ -541,27 +564,165 @@ function DetailsStep({
             icon="wallet-outline"
             prefix={financials.currency}
           />
-          <Divider label="Quick pick" />
-          <AmountQuickPick onSelect={onAmountChange} />
+          {/* <Divider label="Quick pick" />
+          <AmountQuickPick onSelect={onAmountChange} /> */}
         </View>
       </FadeSlideIn>
 
       <FadeSlideIn delay={200}>
-        <SummaryCard>
-          <SummaryRow label="Airtime amount" value={`${financials.currency} ${Number(amount) || 0}`} />
-          <SummaryRow label="Processing fee"  value={`${financials.currency} ${financials.fee.toFixed(2)}`} />
-          <Divider />
-          <SummaryRow label="Total payable"   value={formatMoney(financials.currency, financials.total)} strong />
-        </SummaryCard>
-      </FadeSlideIn>
-
-      <FadeSlideIn delay={240}>
-        <ErrorText error={error} />
-        <PrimaryButton label="Continue to payment" onPress={onSubmit} icon="arrow-forward" />
+        <View style={step.detailsFooter}>
+          <ErrorText error={error} />
+          <PrimaryButton label="Review details" onPress={onSubmit} icon="arrow-forward" />
+        </View>
       </FadeSlideIn>
     </View>
   );
 }
+
+// ─────────────────────────────────────────────
+// STEP — Review
+// ─────────────────────────────────────────────
+function ReviewStep({
+  phoneNumber,
+  financials,
+  onEdit,
+  onContinue,
+}: {
+  phoneNumber: string;
+  financials: ReturnType<typeof selectAirtimeFinancials>;
+  onEdit: () => void;
+  onContinue: () => void;
+}) {
+  return (
+    <View style={step.wrap}>
+      <FadeSlideIn delay={60}>
+        <View style={rv.breakdown}>
+          <View style={rv.breakdownHead}>
+            <View>
+              <Text style={rv.breakdownEyebrow}>Review</Text>
+              <Text style={rv.breakdownTitle}>Payment details</Text>
+            </View>
+            <View style={rv.headIcon}>
+              <Ionicons name="receipt-outline" size={19} color={CORAL} />
+            </View>
+          </View>
+
+          <View style={rv.recipientStrip}>
+            <Ionicons name="call-outline" size={14} color={SLATE} />
+            <Text style={rv.recipientLabel}>Recipient</Text>
+            <Text style={rv.recipientValue}>{phoneNumber}</Text>
+          </View>
+
+          <View style={rv.timeline}>
+            <View style={rv.rail} />
+            <View style={rv.timelineItem}>
+              <View style={[rv.timelineDot, rv.dotCoral]} />
+              <View style={rv.timelineCopy}>
+                <Text style={rv.timelineLabel}>Airtime amount</Text>
+                <Text style={rv.timelineHint}>Delivered to recipient</Text>
+              </View>
+              <Text style={rv.timelineValue}>{formatMoney(financials.currency, financials.amount)}</Text>
+            </View>
+
+            <View style={rv.timelineItem}>
+              <View style={[rv.timelineDot, rv.dotSlate]} />
+              <View style={rv.timelineCopy}>
+                <Text style={rv.timelineLabel}>Processing fee</Text>
+                <Text style={rv.timelineHint}>Network and settlement cost</Text>
+              </View>
+              <Text style={rv.timelineValue}>{formatMoney(financials.currency, financials.fee)}</Text>
+            </View>
+          </View>
+
+          <View style={rv.totalPanel}>
+            <View>
+              <Text style={rv.totalLabel}>TOTAL </Text>
+              {/* <Text style={rv.totalSub}>Charged after you choose payment</Text> */}
+            </View>
+            <Text style={rv.totalValue}>{formatMoney(financials.currency, financials.total)}</Text>
+          </View>
+        </View>
+      </FadeSlideIn>
+
+      <FadeSlideIn delay={120}>
+        <PrimaryButton label="Continue to payment" onPress={onContinue} icon="arrow-forward" />
+        <SecondaryButton label="Edit details" onPress={onEdit} />
+      </FadeSlideIn>
+    </View>
+  );
+}
+
+const rv = StyleSheet.create({
+  breakdown: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 28,
+    padding: 20,
+    gap: 18,
+    borderWidth: 1,
+    borderColor: '#E8EDF2',
+    shadowColor: DARK,
+    shadowOffset: {width: 0, height: 10},
+    shadowOpacity: 0.08,
+    shadowRadius: 20,
+    elevation: 5,
+  },
+  breakdownHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  breakdownEyebrow: {color: CORAL, fontSize: 11, fontWeight: '800', fontFamily: SANS, letterSpacing: 1.4, textTransform: 'uppercase'},
+  breakdownTitle: {color: DARK, fontSize: 24, fontWeight: '700', fontFamily: SERIF, letterSpacing: -0.5, marginTop: 2},
+  headIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: 16,
+    backgroundColor: '#FFF1EA',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  recipientStrip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#F7F9FC',
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 11,
+  },
+  recipientLabel: {color: '#7B8491', fontSize: 12, fontWeight: '700', fontFamily: SANS},
+  recipientValue: {color: DARK, fontSize: 12, fontWeight: '800', fontFamily: SANS, marginLeft: 'auto'},
+  timeline: {gap: 22, position: 'relative', paddingVertical: 3},
+  rail: {
+    position: 'absolute',
+    left: 6,
+    top: 12,
+    bottom: 12,
+    width: 1,
+    backgroundColor: '#E4EAF1',
+  },
+  timelineItem: {flexDirection: 'row', alignItems: 'center', gap: 12},
+  timelineDot: {width: 13, height: 13, borderRadius: 7, borderWidth: 3, borderColor: '#FFFFFF', zIndex: 1},
+  dotCoral: {backgroundColor: CORAL},
+  dotSlate: {backgroundColor: SLATE},
+  timelineCopy: {flex: 1, gap: 2},
+  timelineLabel: {color: DARK, fontSize: 13, fontWeight: '800', fontFamily: SANS},
+  timelineHint: {color: '#8B95A3', fontSize: 11, fontFamily: SANS},
+  timelineValue: {color: DARK, fontSize: 13, fontWeight: '800', fontFamily: SANS},
+  totalPanel: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: '#FFF1EA',
+    borderRadius: 18,
+    padding: 16,
+  },
+  totalLabel: {color: DARK, fontSize: 13, fontWeight: '800', fontFamily: SANS},
+  totalSub: {color: '#9A6A57', fontSize: 11, fontFamily: SANS, marginTop: 2},
+  totalValue: {color: CORAL, fontSize: 20, fontWeight: '700', fontFamily: SERIF, letterSpacing: -0.3},
+});
 
 // ─────────────────────────────────────────────
 // STEP — Payment Method
@@ -569,9 +730,11 @@ function DetailsStep({
 function PaymentMethodStep({
   error,
   onSelect,
+  onBack,
 }: {
   error: string | null;
   onSelect: (method: 'mobileMoney' | 'card') => void;
+  onBack: () => void;
 }) {
   return (
     <View style={step.wrap}>
@@ -586,7 +749,7 @@ function PaymentMethodStep({
         <OptionCard
           icon="phone-portrait-outline"
           title="Mobile money"
-          body="Pay instantly via mobile wallet — MTN, Vodacom, Airtel & more"
+          body="Pay instantly via mobile wallet — Orange, Mpesa, Airtel & more"
           badge="Instant"
           onPress={() => onSelect('mobileMoney')}
         />
@@ -603,6 +766,7 @@ function PaymentMethodStep({
 
       <FadeSlideIn delay={220}>
         <ErrorText error={error} />
+        <SecondaryButton label="Back to summary" onPress={onBack} />
       </FadeSlideIn>
     </View>
   );
@@ -632,6 +796,8 @@ function MobileMoneyStep({
   onSubmit: () => void;
   onBack: () => void;
 }) {
+  const canPay = Boolean(selectedTelco && mobileNumber.trim());
+
   return (
     <View style={step.wrap}>
       <FadeSlideIn delay={60}>
@@ -691,7 +857,12 @@ function MobileMoneyStep({
 
       <FadeSlideIn delay={280}>
         <ErrorText error={error} />
-        <PrimaryButton label={`Pay ${total}`} onPress={onSubmit} icon="lock-closed-outline" />
+        <PrimaryButton
+          label={`Pay ${total}`}
+          onPress={onSubmit}
+          icon="lock-closed-outline"
+          disabled={!canPay}
+        />
         <SecondaryButton label="← Change payment method" onPress={onBack} />
       </FadeSlideIn>
     </View>
@@ -856,6 +1027,7 @@ const rs = StyleSheet.create({
 const step = StyleSheet.create({
   wrap:          {gap: 20},
   amountSection: {gap: 14},
+  detailsFooter: {marginTop: 22},
 });
 
 // ─────────────────────────────────────────────
@@ -929,13 +1101,13 @@ export function AirtimeTopupFlow() {
 
         {/* top bar */}
         <View style={s.topBar}>
-          <Pressable onPress={closeFlow} style={s.closeBtn}>
-            <Ionicons name="close" size={18} color="#FFFFFF" />
-          </Pressable>
           <View style={s.wordRow}>
             <View style={s.wordDot} />
             <Text style={s.wordmark}>ARAKA</Text>
           </View>
+          <Pressable onPress={closeFlow} style={s.closeBtn}>
+            <Ionicons name="close" size={18} color="#FFFFFF" />
+          </Pressable>
         </View>
 
         {/* heading */}
@@ -963,6 +1135,8 @@ export function AirtimeTopupFlow() {
           style={s.scroll}
           contentContainerStyle={s.scrollContent}
           showsVerticalScrollIndicator={false}
+          keyboardDismissMode="on-drag"
+          nestedScrollEnabled
           keyboardShouldPersistTaps="handled">
 
           {store.step === 'details' && (
@@ -977,10 +1151,20 @@ export function AirtimeTopupFlow() {
             />
           )}
 
+          {store.step === 'review' && (
+            <ReviewStep
+              phoneNumber={store.phoneNumber}
+              financials={financials}
+              onEdit={store.editDetails}
+              onContinue={store.confirmReview}
+            />
+          )}
+
           {store.step === 'paymentMethod' && (
             <PaymentMethodStep
               error={store.error}
               onSelect={store.selectPaymentMethod}
+              onBack={store.backToReview}
             />
           )}
 
@@ -1045,7 +1229,7 @@ const s = StyleSheet.create({
     backgroundColor: SLATE,
     paddingHorizontal: 24,
     paddingTop: 56,
-    paddingBottom: 60,
+    paddingBottom: 86,
     position: 'relative',
     overflow: 'hidden',
   },
@@ -1116,5 +1300,5 @@ const s = StyleSheet.create({
     marginBottom: 8,
   },
   scroll:        {flex: 1},
-  scrollContent: {padding: 24, paddingBottom: 48},
+  scrollContent: {flexGrow: 1, padding: 24, paddingBottom: 72},
 });

@@ -1,7 +1,6 @@
 import * as React from 'react';
 import {
   Animated,
-  Dimensions,
   Easing,
   KeyboardAvoidingView,
   Platform,
@@ -10,11 +9,9 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {PAYMENT_TELCOS, PaymentTelcoId} from '../registry/serviceRegistry';
 import {useServiceSessionStore} from '../store/serviceSessionStore';
@@ -22,8 +19,6 @@ import {
   selectTransferFinancials,
   useTransferFlowStore,
 } from '../store/transferFlowStore';
-
-const {height} = Dimensions.get('window');
 
 const CORAL = '#F27649';
 const SLATE = '#3D4A5C';
@@ -33,276 +28,592 @@ const GREEN = '#10B981';
 const RED = '#EF4444';
 const SERIF = Platform.OS === 'ios' ? 'Georgia' : 'serif';
 const SANS = Platform.OS === 'ios' ? 'Helvetica Neue' : 'sans-serif';
-const SHEET_RADIUS = 30;
+
+const STEPS = ['details', 'review', 'paymentMethod', 'mobileMoneyDetails', 'paymentConfirmation'];
 
 const formatMoney = (currency: string, amount: number) =>
   `${currency} ${amount.toFixed(2)}`;
 
+function FadeSlideIn({
+  children,
+  delay = 0,
+  fromY = 20,
+}: {
+  children: React.ReactNode;
+  delay?: number;
+  fromY?: number;
+}) {
+  const opacity = React.useRef(new Animated.Value(0)).current;
+  const translateY = React.useRef(new Animated.Value(fromY)).current;
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      Animated.parallel([
+        Animated.timing(opacity, {
+          toValue: 1,
+          duration: 340,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(translateY, {
+          toValue: 0,
+          duration: 340,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }, delay);
+
+    return () => clearTimeout(timer);
+  }, [delay, fromY, opacity, translateY]);
+
+  return (
+    <Animated.View style={{opacity, transform: [{translateY}]}}>
+      {children}
+    </Animated.View>
+  );
+}
+
+function StepDots({currentStep}: {currentStep: string}) {
+  const stepIndex = STEPS.indexOf(currentStep);
+  if (stepIndex < 0) return null;
+
+  return (
+    <View style={dot.row}>
+      {STEPS.map((_, i) => {
+        const active = i === stepIndex;
+        const done = i < stepIndex;
+
+        return (
+          <View
+            key={i}
+            style={[dot.base, active && dot.active, done && dot.done]}
+          />
+        );
+      })}
+    </View>
+  );
+}
+
+const dot = StyleSheet.create({
+  row: {flexDirection: 'row', gap: 6, alignItems: 'center'},
+  base: {width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.28)'},
+  active: {width: 22, backgroundColor: CORAL},
+  done: {backgroundColor: 'rgba(255,255,255,0.72)'},
+});
+
+function PulseRing() {
+  const scale = React.useRef(new Animated.Value(1)).current;
+  const opacity = React.useRef(new Animated.Value(0.6)).current;
+
+  React.useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.parallel([
+          Animated.timing(scale, {toValue: 1.6, duration: 900, useNativeDriver: true}),
+          Animated.timing(opacity, {toValue: 0, duration: 900, useNativeDriver: true}),
+        ]),
+        Animated.parallel([
+          Animated.timing(scale, {toValue: 1, duration: 0, useNativeDriver: true}),
+          Animated.timing(opacity, {toValue: 0.6, duration: 0, useNativeDriver: true}),
+        ]),
+      ]),
+    ).start();
+  }, [opacity, scale]);
+
+  return (
+    <Animated.View style={[pulse.ring, {transform: [{scale}], opacity}]} />
+  );
+}
+
+const pulse = StyleSheet.create({
+  ring: {
+    position: 'absolute',
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    borderWidth: 2,
+    borderColor: CORAL,
+  },
+});
+
+function FlowInput({
+  label,
+  rightLabel,
+  icon,
+  prefix,
+  onFocus,
+  ...props
+}: {
+  label: string;
+  rightLabel?: string;
+  icon?: string;
+  prefix?: string;
+  placeholder: string;
+  value: string;
+  keyboardType?: 'default' | 'decimal-pad' | 'phone-pad' | 'number-pad';
+  onChangeText: (value: string) => void;
+  onFocus?: () => void;
+}) {
+  const [focused, setFocused] = React.useState(false);
+  const borderAnim = React.useRef(new Animated.Value(0)).current;
+
+  const handleFocus = () => {
+    setFocused(true);
+    onFocus?.();
+    Animated.timing(borderAnim, {toValue: 1, duration: 180, useNativeDriver: false}).start();
+  };
+
+  const handleBlur = () => {
+    setFocused(false);
+    Animated.timing(borderAnim, {toValue: 0, duration: 180, useNativeDriver: false}).start();
+  };
+
+  const borderColor = borderAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['#E5EAF0', CORAL],
+  });
+
+  return (
+    <View style={fi.group}>
+      <View style={fi.labelRow}>
+        <Text style={fi.label}>{label}</Text>
+        {rightLabel && (
+          <View style={fi.verifiedBadge}>
+            <Ionicons name="checkmark-circle" size={12} color={GREEN} />
+            <Text style={fi.verified}>{rightLabel}</Text>
+          </View>
+        )}
+      </View>
+      <Animated.View style={[fi.inputWrap, {borderColor}]}>
+        {icon && (
+          <Ionicons
+            name={icon as any}
+            size={18}
+            color={focused ? CORAL : '#9CA3AF'}
+            style={fi.icon}
+          />
+        )}
+        {prefix && <Text style={fi.prefix}>{prefix}</Text>}
+        <TextInput
+          {...props}
+          placeholderTextColor="#B0BAC9"
+          selectionColor={CORAL}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          style={fi.input}
+        />
+      </Animated.View>
+    </View>
+  );
+}
+
+const fi = StyleSheet.create({
+  group: {gap: 8},
+  labelRow: {flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'},
+  label: {color: DARK, fontSize: 13, fontWeight: '700', fontFamily: SANS, letterSpacing: 0.1},
+  verifiedBadge: {flexDirection: 'row', alignItems: 'center', gap: 4},
+  verified: {color: GREEN, fontSize: 12, fontWeight: '700', fontFamily: SANS},
+  inputWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 56,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    backgroundColor: '#F8FAFC',
+    paddingHorizontal: 14,
+    gap: 10,
+  },
+  icon: {flexShrink: 0},
+  prefix: {color: '#9CA3AF', fontSize: 15, fontFamily: SANS, fontWeight: '600'},
+  input: {flex: 1, fontSize: 16, color: DARK, fontFamily: SANS, padding: 0},
+});
+
+function PrimaryButton({
+  label,
+  onPress,
+  icon,
+  disabled = false,
+}: {
+  label: string;
+  onPress: () => void;
+  icon?: string;
+  disabled?: boolean;
+}) {
+  const scale = React.useRef(new Animated.Value(1)).current;
+  const pressIn = () => {
+    if (!disabled) {
+      Animated.spring(scale, {toValue: 0.96, useNativeDriver: true, damping: 15, stiffness: 300}).start();
+    }
+  };
+  const pressOut = () => {
+    if (!disabled) {
+      Animated.spring(scale, {toValue: 1, useNativeDriver: true, damping: 10, stiffness: 200}).start();
+    }
+  };
+
+  return (
+    <Animated.View style={{transform: [{scale}]}}>
+      <Pressable
+        onPress={onPress}
+        onPressIn={pressIn}
+        onPressOut={pressOut}
+        disabled={disabled}
+        accessibilityState={{disabled}}
+        style={[btn.primary, disabled && btn.primaryDisabled]}>
+        <Text style={[btn.primaryText, disabled && btn.primaryTextDisabled]}>{label}</Text>
+        {icon && <Ionicons name={icon as any} size={18} color={disabled ? '#9CA3AF' : '#FFFFFF'} />}
+      </Pressable>
+    </Animated.View>
+  );
+}
+
+function SecondaryButton({label, onPress}: {label: string; onPress: () => void}) {
+  return (
+    <Pressable onPress={onPress} style={btn.secondary}>
+      <Text style={btn.secondaryText}>{label}</Text>
+    </Pressable>
+  );
+}
+
+function ErrorText({error}: {error: string | null}) {
+  if (!error) return null;
+
+  return (
+    <View style={btn.errorWrap}>
+      <Ionicons name="alert-circle-outline" size={14} color={RED} />
+      <Text style={btn.error}>{error}</Text>
+    </View>
+  );
+}
+
+const btn = StyleSheet.create({
+  primary: {
+    backgroundColor: CORAL,
+    borderRadius: 18,
+    paddingVertical: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 4,
+    shadowColor: CORAL,
+    shadowOffset: {width: 0, height: 6},
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  primaryText: {color: '#FFFFFF', fontSize: 16, fontWeight: '800', fontFamily: SANS, letterSpacing: 0.3},
+  primaryDisabled: {
+    backgroundColor: '#E5EAF0',
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  primaryTextDisabled: {color: '#9CA3AF'},
+  secondary: {borderRadius: 18, paddingVertical: 16, alignItems: 'center'},
+  secondaryText: {color: SLATE, fontSize: 14, fontWeight: '700', fontFamily: SANS},
+  errorWrap: {flexDirection: 'row', alignItems: 'center', gap: 6},
+  error: {color: RED, fontSize: 13, fontWeight: '600', fontFamily: SANS, flex: 1},
+});
+
+function OptionCard({
+  icon,
+  title,
+  body,
+  badge,
+  onPress,
+}: {
+  icon: string;
+  title: string;
+  body: string;
+  badge?: string;
+  onPress: () => void;
+}) {
+  const scale = React.useRef(new Animated.Value(1)).current;
+  const pressIn = () => Animated.spring(scale, {toValue: 0.97, useNativeDriver: true, damping: 15, stiffness: 300}).start();
+  const pressOut = () => Animated.spring(scale, {toValue: 1, useNativeDriver: true, damping: 10, stiffness: 200}).start();
+
+  return (
+    <Animated.View style={{transform: [{scale}]}}>
+      <Pressable
+        onPress={onPress}
+        onPressIn={pressIn}
+        onPressOut={pressOut}
+        style={oc.card}>
+        <View style={oc.iconWrap}>
+          <Ionicons name={icon as any} size={22} color={CORAL} />
+        </View>
+        <View style={oc.text}>
+          <View style={oc.titleRow}>
+            <Text style={oc.title}>{title}</Text>
+            {badge && (
+              <View style={oc.badge}>
+                <Text style={oc.badgeText}>{badge}</Text>
+              </View>
+            )}
+          </View>
+          <Text style={oc.body}>{body}</Text>
+        </View>
+        <View style={oc.arrow}>
+          <Ionicons name="chevron-forward" size={18} color={CORAL} />
+        </View>
+      </Pressable>
+    </Animated.View>
+  );
+}
+
+const oc = StyleSheet.create({
+  card: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E8EDF2',
+    borderRadius: 20,
+    padding: 16,
+    gap: 14,
+    shadowColor: DARK,
+    shadowOffset: {width: 0, height: 3},
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  iconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: 15,
+    backgroundColor: '#FFF1EA',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  text: {flex: 1, gap: 3},
+  titleRow: {flexDirection: 'row', alignItems: 'center', gap: 8},
+  title: {color: DARK, fontSize: 15, fontWeight: '800', fontFamily: SANS},
+  body: {color: '#6B7280', fontSize: 12, fontFamily: SANS, lineHeight: 17},
+  badge: {backgroundColor: '#EDFBF4', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3},
+  badgeText: {color: GREEN, fontSize: 10, fontWeight: '800', fontFamily: SANS},
+  arrow: {width: 32, height: 32, borderRadius: 10, backgroundColor: '#FFF1EA', alignItems: 'center', justifyContent: 'center', flexShrink: 0},
+});
+
+function SectionHead({title, sub}: {title: string; sub?: string}) {
+  return (
+    <View style={sh.wrap}>
+      <Text style={sh.title}>{title}</Text>
+      {sub && <Text style={sh.sub}>{sub}</Text>}
+    </View>
+  );
+}
+
+const sh = StyleSheet.create({
+  wrap: {gap: 4, marginBottom: 4},
+  title: {color: DARK, fontSize: 22, fontWeight: '700', fontFamily: SERIF, letterSpacing: -0.4},
+  sub: {color: '#6B7280', fontSize: 13, fontFamily: SANS, lineHeight: 18},
+});
+
+function SummaryRow({label, value, strong}: {label: string; value: string; strong?: boolean}) {
+  return (
+    <View style={sr.row}>
+      <Text style={sr.label}>{label}</Text>
+      <Text style={[sr.value, strong && sr.strong]}>{value}</Text>
+    </View>
+  );
+}
+
+const sr = StyleSheet.create({
+  row: {flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 6},
+  label: {color: '#6B7280', fontSize: 13, fontFamily: SANS},
+  value: {color: DARK, fontSize: 14, fontWeight: '700', fontFamily: SANS},
+  strong: {fontSize: 18, color: CORAL, fontFamily: SERIF},
+});
+
+function SummaryCard({children}: {children: React.ReactNode}) {
+  return <View style={sc.wrap}>{children}</View>;
+}
+
+const sc = StyleSheet.create({
+  wrap: {
+    backgroundColor: OFF,
+    borderRadius: 16,
+    padding: 16,
+    gap: 2,
+    borderWidth: 1,
+    borderColor: '#E8EDF2',
+  },
+});
+
 export function TransferFlow() {
   const navigation = useNavigation<any>();
-  const insets = useSafeAreaInsets();
   const closeServiceSession = useServiceSessionStore(s => s.closeServiceSession);
   const store = useTransferFlowStore();
   const financials = selectTransferFinancials(store);
   const provider = store.session?.provider;
 
-  const slideAnim = React.useRef(new Animated.Value(height)).current;
-  const backdropAnim = React.useRef(new Animated.Value(0)).current;
+  const heroFade = React.useRef(new Animated.Value(0)).current;
+  const heroY = React.useRef(new Animated.Value(-10)).current;
+  const cardSlide = React.useRef(new Animated.Value(40)).current;
+  const cardFade = React.useRef(new Animated.Value(0)).current;
+  const scrollRef = React.useRef<ScrollView | null>(null);
 
   React.useEffect(() => {
-    Animated.parallel([
-      Animated.timing(backdropAnim, {
-        toValue: 1,
-        duration: 220,
-        useNativeDriver: true,
-      }),
-      Animated.spring(slideAnim, {
-        toValue: 0,
-        damping: 24,
-        stiffness: 250,
-        useNativeDriver: true,
-      }),
+    Animated.sequence([
+      Animated.parallel([
+        Animated.timing(heroFade, {toValue: 1, duration: 380, useNativeDriver: true}),
+        Animated.timing(heroY, {toValue: 0, duration: 380, easing: Easing.out(Easing.cubic), useNativeDriver: true}),
+      ]),
+      Animated.parallel([
+        Animated.timing(cardSlide, {toValue: 0, duration: 400, easing: Easing.out(Easing.cubic), useNativeDriver: true}),
+        Animated.timing(cardFade, {toValue: 1, duration: 360, useNativeDriver: true}),
+      ]),
     ]).start();
-  }, [backdropAnim, slideAnim]);
+  }, [cardFade, cardSlide, heroFade, heroY]);
 
   const closeFlow = () => {
-    Animated.parallel([
-      Animated.timing(backdropAnim, {
-        toValue: 0,
-        duration: 180,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: height,
-        duration: 220,
-        easing: Easing.in(Easing.cubic),
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      store.reset();
-      closeServiceSession();
-      navigation.goBack();
-    });
+    store.reset();
+    closeServiceSession();
+    navigation.goBack();
   };
 
+  const bringLowerFieldsIntoView = React.useCallback(() => {
+    [80, 280].forEach(delay => {
+      setTimeout(() => {
+        scrollRef.current?.scrollToEnd({animated: true});
+      }, delay);
+    });
+  }, []);
+
   if (!provider) {
-    return (
-      <OverlayFrame
-        title="No service"
-        subtitle="This payment session is no longer active."
-        onClose={closeFlow}
-        slideAnim={slideAnim}
-        backdropAnim={backdropAnim}
-        bottomInset={insets.bottom}>
-        <PrimaryButton label="Close" onPress={closeFlow} />
-      </OverlayFrame>
-    );
+    return <EmptyFlow onClose={closeFlow} />;
   }
 
-  const stepLabel = {
-    details: 'Transaction Details',
-    review: 'Payment Summary',
-    paymentMethod: 'Payment Method',
-    mobileMoneyDetails: 'Select Wallet',
-    cardRedirect: 'Card Payment',
-    paymentConfirmation: 'Transaction Processing',
-    success: 'Transaction Successful',
-    failed: 'Transaction Failed',
-  }[store.step];
+  const isTerminal = store.step === 'success' || store.step === 'failed';
 
   return (
-    <OverlayFrame
-      title="Transfer"
-      subtitle={stepLabel}
-      onClose={closeFlow}
-      slideAnim={slideAnim}
-      backdropAnim={backdropAnim}
-      bottomInset={insets.bottom}>
-      <ProviderHeader
-        icon={provider.icon}
-        iconBg={provider.iconBg}
-        iconColor={provider.iconColor}
-        title={provider.name}
-        subtitle="Mobile money transfer"
-      />
+    <KeyboardAvoidingView
+      style={s.root}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <Animated.View style={[s.hero, {opacity: heroFade, transform: [{translateY: heroY}]}]}>
+        <View style={s.ringOuter} />
+        <View style={s.ringInner} />
 
-      {store.step === 'details' && (
-        <DetailsStep
-          subscriberNumber={store.subscriberNumber}
-          smartCardNumber={store.smartCardNumber}
-          phoneNumber={store.phoneNumber}
-          amount={store.amount}
-          error={store.error}
-          onSubscriberNumberChange={store.setSubscriberNumber}
-          onSmartCardNumberChange={store.setSmartCardNumber}
-          onPhoneNumberChange={store.setPhoneNumber}
-          onAmountChange={store.setAmount}
-          onSubmit={store.submitDetails}
-        />
-      )}
-
-      {store.step === 'review' && (
-        <ReviewStep
-          subscriberNumber={store.subscriberNumber}
-          smartCardNumber={store.smartCardNumber}
-          phoneNumber={store.phoneNumber}
-          financials={financials}
-          onEdit={store.editDetails}
-          onContinue={store.confirmReview}
-        />
-      )}
-
-      {store.step === 'paymentMethod' && (
-        <PaymentMethodStep
-          error={store.error}
-          onSelect={store.selectPaymentMethod}
-          onBack={store.backToReview}
-        />
-      )}
-
-      {store.step === 'mobileMoneyDetails' && (
-        <MobileMoneyStep
-          enabledTelcos={provider.capabilities.mobileMoneyTelcos}
-          selectedTelco={store.paymentTelco}
-          mobileNumber={store.mobileNumber}
-          error={store.error}
-          onSelectTelco={store.selectPaymentTelco}
-          onMobileNumberChange={store.setMobileNumber}
-          onSubmit={store.completeMobileMoneyDetails}
-          onBack={store.backToPaymentMethod}
-        />
-      )}
-
-      {store.step === 'cardRedirect' && (
-        <CardRedirectStep onBack={store.backToPaymentMethod} />
-      )}
-
-      {store.step === 'paymentConfirmation' && (
-        <ConfirmationStep
-          providerName={provider.name}
-          onVerify={store.verifyPayment}
-        />
-      )}
-
-      {store.step === 'success' && (
-        <ResultStep
-          success
-          title="Payment Successful"
-          body="Your transfer payment was completed successfully."
-          ctaLabel="Done"
-          onDone={closeFlow}
-        />
-      )}
-
-      {store.step === 'failed' && (
-        <ResultStep
-          title="Transaction Failed"
-          body={store.error || 'Your payment could not be completed.'}
-          ctaLabel="Try Again"
-          onDone={store.backToPaymentMethod}
-        />
-      )}
-    </OverlayFrame>
-  );
-}
-
-function OverlayFrame({
-  title,
-  subtitle,
-  children,
-  onClose,
-  slideAnim,
-  backdropAnim,
-  bottomInset,
-}: {
-  title: string;
-  subtitle: string;
-  children: React.ReactNode;
-  onClose: () => void;
-  slideAnim: Animated.Value;
-  backdropAnim: Animated.Value;
-  bottomInset: number;
-}) {
-  return (
-    <View style={styles.overlayRoot}>
-      <TouchableWithoutFeedback onPress={onClose}>
-        <Animated.View style={[styles.backdrop, {opacity: backdropAnim}]} />
-      </TouchableWithoutFeedback>
-
-      <View style={styles.flowCanvas}>
-        <View style={styles.ringOuter} />
-        <View style={styles.ringInner} />
-        <View style={styles.heroBar}>
-          <View style={styles.wordRow}>
-            <View style={styles.wordDot} />
-            <Text style={styles.wordmark}>ARAKA</Text>
+        <View style={s.topBar}>
+          <View style={s.wordRow}>
+            <View style={s.wordDot} />
+            <Text style={s.wordmark}>ARAKA</Text>
           </View>
+          <Pressable onPress={closeFlow} style={s.closeBtn}>
+            <Ionicons name="close" size={18} color="#FFFFFF" />
+          </Pressable>
         </View>
-        <View style={styles.heroCopy}>
-          <Text style={styles.heroSub}>Secure money movement</Text>
-          <Text style={styles.heroTitle}>Transfer.</Text>
-          <View style={styles.heroRule} />
-        </View>
-      </View>
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
-        pointerEvents="box-none"
-        style={styles.keyboardLayer}>
-        <Animated.View
-          style={[
-            styles.sheet,
-            {
-              transform: [{translateY: slideAnim}],
-              paddingBottom: Math.max(bottomInset, 18),
-            },
-          ]}>
-          <View style={styles.handle} />
-          <View style={styles.sheetHead}>
-            <View>
-              <Text style={styles.sheetTitle}>{title}</Text>
-              <Text style={styles.sheetSub}>{subtitle}</Text>
-            </View>
-            <Pressable onPress={onClose} style={styles.closeBtn}>
-              <Ionicons name="close" size={16} color="#9CA3AF" />
-            </Pressable>
+        <View style={s.headWrap}>
+          <View style={s.providerBadge}>
+            <View style={s.providerDot} />
+            <Text style={s.providerLabel}>{provider.name} Transfer</Text>
           </View>
-          <ScrollView
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.sheetScroll}>
-            {children}
-          </ScrollView>
-        </Animated.View>
-      </KeyboardAvoidingView>
-    </View>
-  );
-}
+          <View style={s.heroRule} />
+        </View>
 
-function ProviderHeader({
-  icon,
-  iconBg,
-  iconColor,
-  title,
-  subtitle,
-}: {
-  icon: string;
-  iconBg: string;
-  iconColor: string;
-  title: string;
-  subtitle: string;
-}) {
-  return (
-    <View style={styles.providerCard}>
-      <View style={[styles.providerIcon, {backgroundColor: iconBg}]}>
-        <Ionicons name={icon as any} size={20} color={iconColor} />
-      </View>
-      <View style={styles.providerInfo}>
-        <Text style={styles.providerTitle}>{title}</Text>
-        <Text style={styles.providerSub}>{subtitle}</Text>
-      </View>
-    </View>
+        {!isTerminal && <StepDots currentStep={store.step} />}
+      </Animated.View>
+
+      <Animated.View style={[s.curveShadow, {opacity: cardFade}]} />
+
+      <Animated.View
+        style={[s.card, {transform: [{translateY: cardSlide}], opacity: cardFade}]}>
+        <View style={s.handle} />
+        <ScrollView
+          ref={scrollRef}
+          style={s.scroll}
+          contentContainerStyle={[
+            s.scrollContent,
+            store.step === 'details' && s.detailsScrollContent,
+          ]}
+          showsVerticalScrollIndicator={false}
+          keyboardDismissMode="on-drag"
+          nestedScrollEnabled
+          keyboardShouldPersistTaps="handled">
+          {store.step === 'details' && (
+            <DetailsStep
+              subscriberNumber={store.subscriberNumber}
+              smartCardNumber={store.smartCardNumber}
+              phoneNumber={store.phoneNumber}
+              amount={store.amount}
+              error={store.error}
+              currency={financials.currency}
+              onSubscriberNumberChange={store.setSubscriberNumber}
+              onSmartCardNumberChange={store.setSmartCardNumber}
+              onPhoneNumberChange={store.setPhoneNumber}
+              onAmountChange={store.setAmount}
+              onLowerFieldFocus={bringLowerFieldsIntoView}
+              onSubmit={store.submitDetails}
+            />
+          )}
+
+          {store.step === 'review' && (
+            <ReviewStep
+              subscriberNumber={store.subscriberNumber}
+              smartCardNumber={store.smartCardNumber}
+              phoneNumber={store.phoneNumber}
+              financials={financials}
+              onEdit={store.editDetails}
+              onContinue={store.confirmReview}
+            />
+          )}
+
+          {store.step === 'paymentMethod' && (
+            <PaymentMethodStep
+              error={store.error}
+              onSelect={store.selectPaymentMethod}
+              onBack={store.backToReview}
+            />
+          )}
+
+          {store.step === 'mobileMoneyDetails' && (
+            <MobileMoneyStep
+              enabledTelcos={provider.capabilities.mobileMoneyTelcos}
+              selectedTelco={store.paymentTelco}
+              mobileNumber={store.mobileNumber}
+              error={store.error}
+              total={formatMoney(financials.currency, financials.total)}
+              onSelectTelco={store.selectPaymentTelco}
+              onMobileNumberChange={store.setMobileNumber}
+              onSubmit={store.completeMobileMoneyDetails}
+              onBack={store.backToPaymentMethod}
+            />
+          )}
+
+          {store.step === 'cardRedirect' && (
+            <CardRedirectStep onBack={store.backToPaymentMethod} />
+          )}
+
+          {store.step === 'paymentConfirmation' && (
+            <ConfirmationStep
+              providerName={provider.name}
+              onVerify={store.verifyPayment}
+              onFail={store.failPayment}
+            />
+          )}
+
+          {store.step === 'success' && (
+            <ResultStep
+              success
+              title="Transfer successful"
+              body="Your transfer payment was completed successfully."
+              onDone={closeFlow}
+            />
+          )}
+
+          {store.step === 'failed' && (
+            <ResultStep
+              title="Transfer failed"
+              body={store.error || 'Your payment could not be completed.'}
+              onDone={store.backToPaymentMethod}
+            />
+          )}
+        </ScrollView>
+      </Animated.View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -312,10 +623,12 @@ function DetailsStep({
   phoneNumber,
   amount,
   error,
+  currency,
   onSubscriberNumberChange,
   onSmartCardNumberChange,
   onPhoneNumberChange,
   onAmountChange,
+  onLowerFieldFocus,
   onSubmit,
 }: {
   subscriberNumber: string;
@@ -323,47 +636,90 @@ function DetailsStep({
   phoneNumber: string;
   amount: string;
   error: string | null;
+  currency: string;
   onSubscriberNumberChange: (value: string) => void;
   onSmartCardNumberChange: (value: string) => void;
   onPhoneNumberChange: (value: string) => void;
   onAmountChange: (value: string) => void;
+  onLowerFieldFocus: () => void;
   onSubmit: () => void;
 }) {
+  const phoneVerified = phoneNumber.replace(/\D/g, '').length >= 9;
+  const smartCardReady = smartCardNumber.replace(/\D/g, '').length === 4;
+  const canReview =
+    subscriberNumber.trim().length > 0 &&
+    smartCardReady &&
+    phoneVerified &&
+    Number(amount) > 0;
+
   return (
-    <View style={styles.block}>
-      <Field
-        icon="person-outline"
-        label="Subscriber Number"
-        placeholder="Enter subscriber number"
-        value={subscriberNumber}
-        onChangeText={onSubscriberNumberChange}
-      />
-      <Field
-        icon="keypad-outline"
-        label="Smart Card Number"
-        placeholder="Last 4 digits only"
-        value={smartCardNumber}
-        keyboardType="number-pad"
-        onChangeText={onSmartCardNumberChange}
-      />
-      <Field
-        icon="call-outline"
-        label="Phone Number"
-        placeholder="Enter phone number"
-        value={phoneNumber}
-        keyboardType="phone-pad"
-        onChangeText={onPhoneNumberChange}
-      />
-      <Field
-        icon="cash-outline"
-        label="Amount"
-        placeholder={phoneNumber ? 'Enter amount' : 'Enter phone number first'}
-        value={amount}
-        keyboardType="decimal-pad"
-        onChangeText={onAmountChange}
-      />
-      <ErrorText error={error} />
-      <PrimaryButton label="Review Details" onPress={onSubmit} />
+    <View style={step.wrap}>
+      <FadeSlideIn delay={60}>
+        <SectionHead
+          title="Transfer details"
+          // sub="Enter the subscriber, smart card, recipient phone, and amount."
+        />
+      </FadeSlideIn>
+
+      <FadeSlideIn delay={110}>
+        <FlowInput
+          label="Subscriber number"
+          placeholder="Enter subscriber number"
+          value={subscriberNumber}
+          onChangeText={onSubscriberNumberChange}
+          icon="person-outline"
+        />
+      </FadeSlideIn>
+
+      <FadeSlideIn delay={150}>
+        <FlowInput
+          label="Smart card"
+          placeholder="Last 4 digits"
+          value={smartCardNumber}
+          keyboardType="number-pad"
+          onChangeText={onSmartCardNumberChange}
+          icon="keypad-outline"
+          rightLabel={smartCardReady ? 'Ready' : undefined}
+        />
+      </FadeSlideIn>
+
+      <FadeSlideIn delay={190}>
+        <FlowInput
+          label="Phone number"
+          placeholder="Enter phone number"
+          value={phoneNumber}
+          keyboardType="phone-pad"
+          onChangeText={onPhoneNumberChange}
+          onFocus={onLowerFieldFocus}
+          icon="call-outline"
+          rightLabel={phoneVerified ? 'Verified' : undefined}
+        />
+      </FadeSlideIn>
+
+      <FadeSlideIn delay={230}>
+        <FlowInput
+          label="Amount"
+          placeholder="0.00"
+          value={amount}
+          keyboardType="decimal-pad"
+          onChangeText={onAmountChange}
+          onFocus={onLowerFieldFocus}
+          icon="wallet-outline"
+          prefix={currency}
+        />
+      </FadeSlideIn>
+
+      <FadeSlideIn delay={270}>
+        <View style={step.detailsFooter}>
+          <ErrorText error={error} />
+          <PrimaryButton
+            label="Review details"
+            onPress={onSubmit}
+            icon="arrow-forward"
+            disabled={!canReview}
+          />
+        </View>
+      </FadeSlideIn>
     </View>
   );
 }
@@ -384,30 +740,174 @@ function ReviewStep({
   onContinue: () => void;
 }) {
   return (
-    <View style={styles.block}>
-      <View style={styles.reviewHero}>
-        <View style={styles.reviewIcon}>
-          <Ionicons name="receipt-outline" size={22} color={CORAL} />
+    <View style={step.wrap}>
+      <FadeSlideIn delay={60}>
+        <View style={rv.breakdown}>
+          <View style={rv.breakdownHead}>
+            <View>
+              <Text style={rv.breakdownEyebrow}>Review</Text>
+              <Text style={rv.breakdownTitle}>Payment details</Text>
+            </View>
+            <View style={rv.headIcon}>
+              <Ionicons name="receipt-outline" size={19} color={CORAL} />
+            </View>
+          </View>
+
+          <View style={rv.identityGrid}>
+            <View style={rv.identityItem}>
+              <Text style={rv.identityLabel}>Subscriber</Text>
+              <Text style={rv.identityValue}>{subscriberNumber}</Text>
+            </View>
+            <View style={rv.identityItem}>
+              <Text style={rv.identityLabel}>Smart card</Text>
+              <Text style={rv.identityValue}>Last 4: {smartCardNumber}</Text>
+            </View>
+            <View style={[rv.identityItem, rv.identityWide]}>
+              <Text style={rv.identityLabel}>Phone number</Text>
+              <Text style={rv.identityValue}>{phoneNumber}</Text>
+            </View>
+          </View>
+
+          <View style={rv.timeline}>
+            <View style={rv.rail} />
+            <TimelineItem
+              accent="coral"
+              label="Transfer amount"
+              hint="Sent to the subscriber account"
+              value={formatMoney(financials.currency, financials.amount)}
+            />
+            <TimelineItem
+              accent="slate"
+              label="Processing fee"
+              hint="Network and settlement cost"
+              value={formatMoney(financials.currency, financials.fee)}
+            />
+            <TimelineItem
+              accent="green"
+              label="VAT"
+              hint="Tax applied to this transfer"
+              value={formatMoney(financials.currency, financials.vat)}
+            />
+          </View>
+
+          <View style={rv.totalPanel}>
+            <Text style={rv.totalLabel}>TOTAL</Text>
+            <Text style={rv.totalValue}>{formatMoney(financials.currency, financials.total)}</Text>
+          </View>
         </View>
-        <View style={styles.providerInfo}>
-          <Text style={styles.reviewTitle}>Payment Summary</Text>
-          <Text style={styles.reviewSub}>Check the transfer details before selecting how to pay.</Text>
-        </View>
-      </View>
-      <SummaryCard>
-        <SummaryRow label="Subscriber Number" value={subscriberNumber} />
-        <SummaryRow label="Smart Card" value={`Last 4: ${smartCardNumber}`} />
-        <SummaryRow label="Phone Number" value={phoneNumber} />
-        <SummaryRow label="Amount" value={formatMoney(financials.currency, financials.amount)} />
-        <SummaryRow label="Processing Fee" value={formatMoney(financials.currency, financials.fee)} />
-        <SummaryRow label="VAT" value={formatMoney(financials.currency, financials.vat)} />
-        <SummaryRow label="Total Amount" value={formatMoney(financials.currency, financials.total)} highlight />
-      </SummaryCard>
-      <PrimaryButton label="Choose Payment Method" onPress={onContinue} />
-      <GhostButton label="Edit Details" onPress={onEdit} />
+      </FadeSlideIn>
+
+      <FadeSlideIn delay={120}>
+        <PrimaryButton label="Continue to payment" onPress={onContinue} icon="arrow-forward" />
+        <SecondaryButton label="Edit details" onPress={onEdit} />
+      </FadeSlideIn>
     </View>
   );
 }
+
+function TimelineItem({
+  accent,
+  label,
+  hint,
+  value,
+}: {
+  accent: 'coral' | 'slate' | 'green';
+  label: string;
+  hint: string;
+  value: string;
+}) {
+  return (
+    <View style={rv.timelineItem}>
+      <View
+        style={[
+          rv.timelineDot,
+          accent === 'coral' && rv.dotCoral,
+          accent === 'slate' && rv.dotSlate,
+          accent === 'green' && rv.dotGreen,
+        ]}
+      />
+      <View style={rv.timelineCopy}>
+        <Text style={rv.timelineLabel}>{label}</Text>
+        <Text style={rv.timelineHint}>{hint}</Text>
+      </View>
+      <Text style={rv.timelineValue}>{value}</Text>
+    </View>
+  );
+}
+
+const rv = StyleSheet.create({
+  breakdown: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 28,
+    padding: 20,
+    gap: 18,
+    borderWidth: 1,
+    borderColor: '#E8EDF2',
+    shadowColor: DARK,
+    shadowOffset: {width: 0, height: 10},
+    shadowOpacity: 0.08,
+    shadowRadius: 20,
+    elevation: 5,
+  },
+  breakdownHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  breakdownEyebrow: {color: CORAL, fontSize: 11, fontWeight: '800', fontFamily: SANS, letterSpacing: 1.4, textTransform: 'uppercase'},
+  breakdownTitle: {color: DARK, fontSize: 24, fontWeight: '700', fontFamily: SERIF, letterSpacing: -0.5, marginTop: 2},
+  headIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: 16,
+    backgroundColor: '#FFF1EA',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  identityGrid: {flexDirection: 'row', flexWrap: 'wrap', gap: 10},
+  identityItem: {
+    flexGrow: 1,
+    flexBasis: '47%',
+    backgroundColor: '#F7F9FC',
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 11,
+    gap: 3,
+  },
+  identityWide: {flexBasis: '100%'},
+  identityLabel: {color: '#7B8491', fontSize: 11, fontWeight: '700', fontFamily: SANS},
+  identityValue: {color: DARK, fontSize: 12, fontWeight: '800', fontFamily: SANS},
+  timeline: {gap: 22, position: 'relative', paddingVertical: 3},
+  rail: {
+    position: 'absolute',
+    left: 6,
+    top: 12,
+    bottom: 12,
+    width: 1,
+    backgroundColor: '#E4EAF1',
+  },
+  timelineItem: {flexDirection: 'row', alignItems: 'center', gap: 12},
+  timelineDot: {width: 13, height: 13, borderRadius: 7, borderWidth: 3, borderColor: '#FFFFFF', zIndex: 1},
+  dotCoral: {backgroundColor: CORAL},
+  dotSlate: {backgroundColor: SLATE},
+  dotGreen: {backgroundColor: GREEN},
+  timelineCopy: {flex: 1, gap: 2},
+  timelineLabel: {color: DARK, fontSize: 13, fontWeight: '800', fontFamily: SANS},
+  timelineHint: {color: '#8B95A3', fontSize: 11, fontFamily: SANS},
+  timelineValue: {color: DARK, fontSize: 13, fontWeight: '800', fontFamily: SANS},
+  totalPanel: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: '#FFF1EA',
+    borderRadius: 18,
+    padding: 16,
+  },
+  totalLabel: {color: DARK, fontSize: 13, fontWeight: '800', fontFamily: SANS},
+  totalValue: {color: CORAL, fontSize: 20, fontWeight: '700', fontFamily: SERIF, letterSpacing: -0.3},
+});
 
 function PaymentMethodStep({
   error,
@@ -419,22 +919,37 @@ function PaymentMethodStep({
   onBack: () => void;
 }) {
   return (
-    <View style={styles.block}>
-      <Text style={styles.groupLabel}>Choose Payment Method</Text>
-      <OptionRow
-        icon="phone-portrait-outline"
-        title="Mobile Money"
-        subtitle="Fast and secure mobile payments"
-        onPress={() => onSelect('mobileMoney')}
-      />
-      <OptionRow
-        icon="card-outline"
-        title="Card Payment"
-        subtitle="Pay with credit/debit card"
-        onPress={() => onSelect('card')}
-      />
-      <ErrorText error={error} />
-      <GhostButton label="Back to Summary" onPress={onBack} />
+    <View style={step.wrap}>
+      <FadeSlideIn delay={60}>
+        <SectionHead
+          title="How would you like to pay?"
+          sub="Choose your preferred payment method below"
+        />
+      </FadeSlideIn>
+
+      <FadeSlideIn delay={120}>
+        <OptionCard
+          icon="phone-portrait-outline"
+          title="Mobile money"
+          body="Pay instantly via mobile wallet - Orange, Mpesa, Airtel and more"
+          badge="Instant"
+          onPress={() => onSelect('mobileMoney')}
+        />
+      </FadeSlideIn>
+
+      <FadeSlideIn delay={170}>
+        <OptionCard
+          icon="card-outline"
+          title="Card payment"
+          body="Visa, Mastercard or any credit / debit card"
+          onPress={() => onSelect('card')}
+        />
+      </FadeSlideIn>
+
+      <FadeSlideIn delay={220}>
+        <ErrorText error={error} />
+        <SecondaryButton label="Back to summary" onPress={onBack} />
+      </FadeSlideIn>
     </View>
   );
 }
@@ -444,6 +959,7 @@ function MobileMoneyStep({
   selectedTelco,
   mobileNumber,
   error,
+  total,
   onSelectTelco,
   onMobileNumberChange,
   onSubmit,
@@ -453,333 +969,390 @@ function MobileMoneyStep({
   selectedTelco: PaymentTelcoId | null;
   mobileNumber: string;
   error: string | null;
+  total: string;
   onSelectTelco: (telco: PaymentTelcoId) => void;
   onMobileNumberChange: (value: string) => void;
   onSubmit: () => void;
   onBack: () => void;
 }) {
+  const canPay = Boolean(selectedTelco && mobileNumber.trim());
+
   return (
-    <View style={styles.block}>
-      <Text style={styles.groupLabel}>Select Wallet</Text>
-      <View style={styles.walletList}>
-        {enabledTelcos.map(telco => {
-          const selected = selectedTelco === telco;
-          return (
-            <Pressable
-              key={telco}
-              onPress={() => onSelectTelco(telco)}
-              style={[styles.walletCard, selected && styles.walletCardActive]}>
-              <View style={styles.walletMark}>
-                <Text style={styles.walletInitial}>{PAYMENT_TELCOS[telco].label.slice(0, 1)}</Text>
-              </View>
-              <View style={styles.providerInfo}>
-                <Text style={styles.walletTitle}>{PAYMENT_TELCOS[telco].label}</Text>
-                <Text style={styles.walletSub}>Send confirmation prompt to this wallet</Text>
-              </View>
-              <View style={[styles.walletCheck, selected && styles.walletCheckActive]}>
-                {selected && <Ionicons name="checkmark" size={13} color="#FFFFFF" />}
-              </View>
-            </Pressable>
-          );
-        })}
-      </View>
-      <View style={styles.promptCard}>
-        <Field
-          icon="phone-portrait-outline"
-          label="Mobile Number"
-          placeholder="243810000002"
+    <View style={step.wrap}>
+      <FadeSlideIn delay={60}>
+        <SectionHead
+          title="Mobile money"
+          sub="Select your network and enter the wallet number to debit"
+        />
+      </FadeSlideIn>
+
+      <FadeSlideIn delay={110}>
+        <View style={mm.networkSection}>
+          <Text style={mm.networkLabel}>Select network</Text>
+          <View style={mm.networkRow}>
+            {enabledTelcos.map(telco => {
+              const active = selectedTelco === telco;
+              return (
+                <Pressable
+                  key={telco}
+                  onPress={() => onSelectTelco(telco)}
+                  style={[mm.network, active && mm.networkActive]}>
+                  <View style={[mm.networkDot, active && mm.networkDotActive]} />
+                  <Text style={[mm.networkText, active && mm.networkTextActive]}>
+                    {PAYMENT_TELCOS[telco].label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+      </FadeSlideIn>
+
+      <FadeSlideIn delay={160}>
+        <FlowInput
+          label="Wallet number"
+          placeholder="Enter mobile money number"
           value={mobileNumber}
           keyboardType="phone-pad"
           onChangeText={onMobileNumberChange}
+          icon="phone-portrait-outline"
         />
-        <Text style={styles.helper}>You'll receive a confirmation prompt on your mobile device.</Text>
-      </View>
-      <ErrorText error={error} />
-      <PrimaryButton label="Complete Payment" onPress={onSubmit} />
-      <GhostButton label="Back" onPress={onBack} />
+      </FadeSlideIn>
+
+      <FadeSlideIn delay={200}>
+        <View style={mm.notice}>
+          <Ionicons name="information-circle-outline" size={16} color={SLATE} />
+          <Text style={mm.noticeText}>
+            You will receive a push prompt on your phone to authorise this payment.
+          </Text>
+        </View>
+      </FadeSlideIn>
+
+      <FadeSlideIn delay={240}>
+        <SummaryCard>
+          <SummaryRow label="Amount to pay" value={total} strong />
+        </SummaryCard>
+      </FadeSlideIn>
+
+      <FadeSlideIn delay={280}>
+        <ErrorText error={error} />
+        <PrimaryButton
+          label={`Pay ${total}`}
+          onPress={onSubmit}
+          icon="lock-closed-outline"
+          disabled={!canPay}
+        />
+        <SecondaryButton label="Change payment method" onPress={onBack} />
+      </FadeSlideIn>
     </View>
   );
 }
 
+const mm = StyleSheet.create({
+  networkSection: {gap: 10},
+  networkLabel: {color: DARK, fontSize: 13, fontWeight: '700', fontFamily: SANS},
+  networkRow: {flexDirection: 'row', flexWrap: 'wrap', gap: 8},
+  network: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+    borderWidth: 1.5,
+    borderColor: '#E8EDF2',
+    backgroundColor: '#FFFFFF',
+  },
+  networkActive: {borderColor: DARK, backgroundColor: DARK},
+  networkDot: {width: 8, height: 8, borderRadius: 4, backgroundColor: '#D1D9E0'},
+  networkDotActive: {backgroundColor: CORAL},
+  networkText: {color: SLATE, fontSize: 13, fontWeight: '700', fontFamily: SANS},
+  networkTextActive: {color: '#FFFFFF'},
+  notice: {
+    flexDirection: 'row',
+    gap: 10,
+    alignItems: 'flex-start',
+    backgroundColor: '#EEF2F7',
+    borderRadius: 14,
+    padding: 14,
+  },
+  noticeText: {flex: 1, color: SLATE, fontSize: 12, fontFamily: SANS, lineHeight: 18},
+});
+
 function CardRedirectStep({onBack}: {onBack: () => void}) {
   return (
-    <View style={styles.centerBlock}>
-      <View style={styles.statusHalo}>
-        <Ionicons name="card-outline" size={30} color={CORAL} />
-      </View>
-      <Text style={styles.resultTitle}>Secure card checkout</Text>
-      <Text style={styles.resultBody}>Card payments will route to the payment processor once that integration is connected.</Text>
-      <GhostButton label="Back to Payment Methods" onPress={onBack} />
+    <View style={step.wrap}>
+      <FadeSlideIn delay={60}>
+        <SectionHead
+          title="Secure card checkout"
+          sub="You will be redirected to our PCI-compliant payment page to complete this transaction."
+        />
+      </FadeSlideIn>
+      <FadeSlideIn delay={120}>
+        <View style={cd.lockCard}>
+          <View style={cd.lockIcon}>
+            <Ionicons name="lock-closed" size={28} color={CORAL} />
+          </View>
+          <Text style={cd.lockTitle}>256-bit SSL encrypted</Text>
+          <Text style={cd.lockSub}>Your card details are never stored on our servers</Text>
+        </View>
+      </FadeSlideIn>
+      <FadeSlideIn delay={180}>
+        <SecondaryButton label="Back to payment methods" onPress={onBack} />
+      </FadeSlideIn>
     </View>
   );
 }
+
+const cd = StyleSheet.create({
+  lockCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 28,
+    alignItems: 'center',
+    gap: 10,
+    borderWidth: 1,
+    borderColor: '#E8EDF2',
+  },
+  lockIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
+    backgroundColor: '#FFF1EA',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  lockTitle: {color: DARK, fontSize: 16, fontWeight: '700', fontFamily: SERIF, textAlign: 'center'},
+  lockSub: {color: '#6B7280', fontSize: 13, fontFamily: SANS, textAlign: 'center', lineHeight: 18},
+});
 
 function ConfirmationStep({
   providerName,
   onVerify,
+  onFail,
 }: {
   providerName: string;
   onVerify: () => void;
+  onFail: () => void;
 }) {
   return (
-    <View style={styles.centerBlock}>
-      <View style={styles.spinner}>
-        {[0, 1, 2, 3, 4, 5].map(i => (
-          <View
-            key={i}
-            style={[
-              styles.spinnerDot,
-              {
-                opacity: 1 - i * 0.12,
-                transform: [{rotate: `${i * 60}deg`}, {translateY: -18}],
-              },
-            ]}
-          />
-        ))}
-      </View>
-      <Text style={styles.resultTitle}>Processing your transaction</Text>
-      <Text style={styles.resultBody}>Please wait while we check your {providerName} payment status.</Text>
-      <PrimaryButton label="I've Completed the Payment" onPress={onVerify} />
+    <View style={step.wrap}>
+      <FadeSlideIn delay={60}>
+        <SectionHead
+          title="Awaiting payment"
+          sub={`Check your phone for the ${providerName} payment prompt and approve it.`}
+        />
+      </FadeSlideIn>
+      <FadeSlideIn delay={120}>
+        <View style={cf.pulseWrap}>
+          <PulseRing />
+          <View style={cf.pulseCenter}>
+            <Ionicons name="phone-portrait-outline" size={30} color={CORAL} />
+          </View>
+        </View>
+        <Text style={cf.pulseLabel}>Waiting for approval on your device...</Text>
+      </FadeSlideIn>
+      <FadeSlideIn delay={200}>
+        <PrimaryButton label="I have approved the payment" onPress={onVerify} icon="checkmark" />
+        <SecondaryButton label="Payment did not come through?" onPress={onFail} />
+      </FadeSlideIn>
     </View>
   );
 }
+
+const cf = StyleSheet.create({
+  pulseWrap: {alignItems: 'center', justifyContent: 'center', height: 130, marginVertical: 12},
+  pulseCenter: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#FFF1EA',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pulseLabel: {color: '#9CA3AF', fontSize: 13, fontFamily: SANS, textAlign: 'center', marginTop: 4},
+});
 
 function ResultStep({
   success,
   title,
   body,
-  ctaLabel,
   onDone,
 }: {
   success?: boolean;
   title: string;
   body: string;
-  ctaLabel: string;
   onDone: () => void;
 }) {
+  const scale = React.useRef(new Animated.Value(0.5)).current;
+  const opacity = React.useRef(new Animated.Value(0)).current;
+
+  React.useEffect(() => {
+    Animated.spring(scale, {toValue: 1, useNativeDriver: true, damping: 12, stiffness: 150}).start();
+    Animated.timing(opacity, {toValue: 1, duration: 300, useNativeDriver: true}).start();
+  }, [opacity, scale]);
+
   return (
-    <View style={styles.centerBlock}>
-      <View style={[styles.resultHalo, success ? styles.successHalo : styles.failedHalo]}>
-        <Ionicons name={success ? 'checkmark-circle' : 'close-circle'} size={36} color={success ? GREEN : RED} />
+    <Animated.View style={[step.wrap, {opacity}]}>
+      <View style={rs.center}>
+        <Animated.View style={[rs.iconWrap, success ? rs.success : rs.failed, {transform: [{scale}]}]}>
+          <View style={[rs.iconRing, success ? rs.successRing : rs.failedRing]} />
+          <Ionicons name={success ? 'checkmark' : 'close'} size={36} color="#FFFFFF" />
+        </Animated.View>
+        <Text style={rs.title}>{title}</Text>
+        <Text style={rs.body}>{body}</Text>
       </View>
-      <Text style={styles.resultTitle}>{title}</Text>
-      <Text style={styles.resultBody}>{body}</Text>
-      <PrimaryButton label={ctaLabel} onPress={onDone} />
-      {success && <GhostButton label="View Transaction" onPress={onDone} />}
-    </View>
+      <PrimaryButton
+        label={success ? 'All done!' : 'Try again'}
+        onPress={onDone}
+        icon={success ? 'home-outline' : 'refresh-outline'}
+      />
+    </Animated.View>
   );
 }
 
-function Field({
-  icon,
-  label,
-  ...props
-}: {
-  icon: string;
-  label: string;
-  placeholder: string;
-  value: string;
-  keyboardType?: 'default' | 'decimal-pad' | 'phone-pad' | 'number-pad';
-  onChangeText: (value: string) => void;
-}) {
-  return (
-    <View style={styles.field}>
-      <Text style={styles.fieldLabel}>{label}</Text>
-      <View style={styles.inputShell}>
-        <Ionicons name={icon as any} size={16} color={CORAL} />
-        <TextInput
-          {...props}
-          placeholderTextColor="#A3ACB9"
-          selectionColor={CORAL}
-          style={styles.input}
-        />
-      </View>
-    </View>
-  );
-}
-
-function SummaryCard({children, compact}: {children: React.ReactNode; compact?: boolean}) {
-  return <View style={[styles.summaryCard, compact && styles.summaryCompact]}>{children}</View>;
-}
-
-function SummaryRow({label, value, highlight}: {label: string; value: string; highlight?: boolean}) {
-  return (
-    <View style={styles.summaryRow}>
-      <Text style={styles.summaryLabel}>{label}</Text>
-      <Text style={[styles.summaryValue, highlight && styles.summaryHighlight]}>{value}</Text>
-    </View>
-  );
-}
-
-function OptionRow({
-  icon,
-  title,
-  subtitle,
-  onPress,
-}: {
-  icon: string;
-  title: string;
-  subtitle: string;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable onPress={onPress} style={styles.optionRow}>
-      <View style={styles.optionIcon}>
-        <Ionicons name={icon as any} size={18} color={CORAL} />
-      </View>
-      <View style={styles.providerInfo}>
-        <Text style={styles.optionTitle}>{title}</Text>
-        <Text style={styles.optionSub}>{subtitle}</Text>
-      </View>
-      <Ionicons name="chevron-forward" size={17} color="#C4CDD8" />
-    </Pressable>
-  );
-}
-
-function PrimaryButton({label, onPress}: {label: string; onPress: () => void}) {
-  return (
-    <Pressable onPress={onPress} style={styles.primaryButton}>
-      <Text style={styles.primaryText}>{label}</Text>
-    </Pressable>
-  );
-}
-
-function GhostButton({label, onPress}: {label: string; onPress: () => void}) {
-  return (
-    <Pressable onPress={onPress} style={styles.ghostButton}>
-      <Text style={styles.ghostText}>{label}</Text>
-    </Pressable>
-  );
-}
-
-function ErrorText({error}: {error: string | null}) {
-  return error ? <Text style={styles.error}>{error}</Text> : null;
-}
-
-const styles = StyleSheet.create({
-  overlayRoot: {flex: 1, justifyContent: 'flex-end'},
-  keyboardLayer: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    justifyContent: 'flex-end',
+const rs = StyleSheet.create({
+  center: {alignItems: 'center', gap: 12, paddingVertical: 24},
+  iconWrap: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+    position: 'relative',
   },
-  backdrop: {
+  iconRing: {
     position: 'absolute',
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    backgroundColor: 'rgba(26,37,53,0.42)',
+    inset: -10,
+    borderRadius: 50,
+    borderWidth: 1.5,
+    opacity: 0.25,
   },
-  flowCanvas: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
+  success: {backgroundColor: GREEN},
+  failed: {backgroundColor: RED},
+  successRing: {borderColor: GREEN},
+  failedRing: {borderColor: RED},
+  title: {color: DARK, fontSize: 24, fontWeight: '700', fontFamily: SERIF, textAlign: 'center', letterSpacing: -0.4},
+  body: {color: '#6B7280', fontSize: 14, fontFamily: SANS, textAlign: 'center', lineHeight: 21, maxWidth: 280},
+});
+
+const step = StyleSheet.create({
+  wrap: {gap: 20},
+  detailsFooter: {marginTop: 22},
+});
+
+function EmptyFlow({onClose}: {onClose: () => void}) {
+  return (
+    <View style={ef.root}>
+      <Ionicons name="alert-circle-outline" size={48} color="#D1D9E0" />
+      <Text style={ef.title}>No active session</Text>
+      <PrimaryButton label="Close" onPress={onClose} />
+    </View>
+  );
+}
+
+const ef = StyleSheet.create({
+  root: {flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16, padding: 32, backgroundColor: OFF},
+  title: {color: DARK, fontSize: 18, fontWeight: '700', fontFamily: SERIF},
+});
+
+const CARD_RADIUS = 36;
+
+const s = StyleSheet.create({
+  root: {flex: 1, backgroundColor: SLATE},
+  hero: {
     backgroundColor: SLATE,
     paddingHorizontal: 24,
-    paddingTop: 50,
+    paddingTop: 56,
+    paddingBottom: 86,
+    position: 'relative',
+    overflow: 'hidden',
   },
   ringOuter: {
     position: 'absolute',
-    top: -28,
-    right: -48,
-    width: 190,
-    height: 190,
-    borderRadius: 95,
+    top: -30,
+    right: -50,
+    width: 200,
+    height: 200,
+    borderRadius: 100,
     borderWidth: 32,
-    borderColor: 'rgba(242,118,73,0.10)',
+    borderColor: 'rgba(242,118,73,0.09)',
   },
   ringInner: {
     position: 'absolute',
-    top: 22,
-    right: 12,
-    width: 96,
-    height: 96,
-    borderRadius: 48,
+    top: 24,
+    right: 14,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     borderWidth: 1.5,
-    borderColor: 'rgba(242,118,73,0.22)',
+    borderColor: 'rgba(242,118,73,0.20)',
   },
-  heroBar: {marginBottom: 30},
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 28,
+  },
+  closeBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.13)',
+  },
   wordRow: {flexDirection: 'row', alignItems: 'center', gap: 7},
   wordDot: {width: 8, height: 8, borderRadius: 4, backgroundColor: CORAL},
   wordmark: {color: '#FFFFFF', fontSize: 14, fontWeight: '800', letterSpacing: 4, fontFamily: SANS},
-  heroCopy: {marginTop: 4},
-  heroSub: {color: 'rgba(255,255,255,0.42)', fontSize: 14, fontFamily: SANS, letterSpacing: 0.4, marginBottom: 4},
-  heroTitle: {color: '#FFFFFF', fontSize: 40, fontWeight: '700', fontFamily: SERIF, letterSpacing: -1, lineHeight: 44},
-  heroRule: {width: 36, height: 3, backgroundColor: CORAL, borderRadius: 2, marginTop: 12},
-  sheet: {
-    maxHeight: height * 0.9,
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: SHEET_RADIUS,
-    borderTopRightRadius: SHEET_RADIUS,
-    paddingHorizontal: 18,
-    paddingTop: 12,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: -12},
-    shadowOpacity: 0.18,
-    shadowRadius: 30,
-    elevation: 28,
+  headWrap: {gap: 10, marginBottom: 20},
+  providerBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(255,255,255,0.11)',
+    alignSelf: 'flex-start',
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
-  handle: {width: 38, height: 4, borderRadius: 2, backgroundColor: '#D1D9E0', alignSelf: 'center', marginBottom: 18},
-  sheetHead: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14},
-  sheetTitle: {color: DARK, fontSize: 20, fontWeight: '700', fontFamily: SERIF, letterSpacing: -0.5},
-  sheetSub: {color: '#9CA3AF', fontSize: 12, fontFamily: SANS, marginTop: 3},
-  closeBtn: {width: 30, height: 30, borderRadius: 15, backgroundColor: OFF, alignItems: 'center', justifyContent: 'center'},
-  sheetScroll: {paddingBottom: 10},
-  providerCard: {flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#FAFBFD', borderWidth: 1, borderColor: '#EEF1F5', borderRadius: 18, padding: 12, marginBottom: 14},
-  providerIcon: {width: 42, height: 42, borderRadius: 14, alignItems: 'center', justifyContent: 'center'},
-  providerInfo: {flex: 1},
-  providerTitle: {color: DARK, fontSize: 13, fontWeight: '800', fontFamily: SANS},
-  providerSub: {color: '#9CA3AF', fontSize: 11, fontFamily: SANS, marginTop: 2},
-  block: {gap: 12},
-  field: {gap: 7},
-  fieldLabel: {color: DARK, fontSize: 12, fontWeight: '800', fontFamily: SANS},
-  inputShell: {height: 48, borderRadius: 14, borderWidth: 1, borderColor: '#E8EDF2', backgroundColor: '#F8FAFC', flexDirection: 'row', alignItems: 'center', gap: 9, paddingHorizontal: 12},
-  input: {flex: 1, padding: 0, color: DARK, fontSize: 14, fontFamily: SANS},
-  summaryCard: {backgroundColor: OFF, borderRadius: 16, padding: 13, gap: 9},
-  summaryCompact: {paddingVertical: 10},
-  summaryTitle: {color: DARK, fontSize: 14, fontWeight: '800', fontFamily: SANS, marginBottom: 2},
-  reviewHero: {flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#FFF8F4', borderWidth: 1, borderColor: '#FFE0D1', borderRadius: 18, padding: 13},
-  reviewIcon: {width: 42, height: 42, borderRadius: 15, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center'},
-  reviewTitle: {color: DARK, fontSize: 15, fontWeight: '900', fontFamily: SANS},
-  reviewSub: {color: '#8A94A6', fontSize: 11, lineHeight: 16, fontFamily: SANS, marginTop: 2},
-  summaryRow: {flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'},
-  summaryLabel: {color: '#8A94A6', fontSize: 12, fontFamily: SANS},
-  summaryValue: {color: DARK, fontSize: 12, fontWeight: '700', fontFamily: SANS},
-  summaryHighlight: {color: CORAL, fontSize: 13, fontWeight: '900'},
-  groupLabel: {color: DARK, fontSize: 13, fontWeight: '800', fontFamily: SANS, marginTop: 2},
-  optionRow: {flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 16, padding: 13, borderWidth: 1, borderColor: '#EEF1F5', backgroundColor: '#FFFFFF'},
-  optionIcon: {width: 38, height: 38, borderRadius: 13, backgroundColor: '#FFF1EA', alignItems: 'center', justifyContent: 'center'},
-  optionTitle: {color: DARK, fontSize: 13, fontWeight: '800', fontFamily: SANS},
-  optionSub: {color: '#9CA3AF', fontSize: 11, fontFamily: SANS, marginTop: 2},
-  walletList: {gap: 8},
-  walletCard: {flexDirection: 'row', alignItems: 'center', gap: 11, borderRadius: 18, padding: 13, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E8EDF2'},
-  walletCardActive: {borderColor: CORAL, backgroundColor: '#FFF8F4', shadowColor: CORAL, shadowOffset: {width: 0, height: 6}, shadowOpacity: 0.1, shadowRadius: 12, elevation: 2},
-  walletMark: {width: 38, height: 38, borderRadius: 14, backgroundColor: '#F1F4F8', alignItems: 'center', justifyContent: 'center'},
-  walletInitial: {color: DARK, fontSize: 13, fontWeight: '900', fontFamily: SANS},
-  walletCheck: {width: 22, height: 22, borderRadius: 11, borderWidth: 1, borderColor: '#D5DCE5', alignItems: 'center', justifyContent: 'center'},
-  walletCheckActive: {backgroundColor: CORAL, borderColor: CORAL},
-  walletTitle: {color: DARK, fontSize: 13, fontWeight: '800', fontFamily: SANS},
-  walletSub: {color: '#9CA3AF', fontSize: 11, fontFamily: SANS},
-  promptCard: {gap: 8, backgroundColor: '#FAFBFD', borderRadius: 18, borderWidth: 1, borderColor: '#EEF1F5', padding: 12},
-  helper: {color: '#8A94A6', fontSize: 12, lineHeight: 18, fontFamily: SANS},
-  centerBlock: {alignItems: 'center', gap: 12, paddingVertical: 12},
-  statusHalo: {width: 70, height: 70, borderRadius: 24, backgroundColor: '#FFF1EA', alignItems: 'center', justifyContent: 'center'},
-  spinner: {width: 70, height: 70, alignItems: 'center', justifyContent: 'center'},
-  spinnerDot: {position: 'absolute', width: 8, height: 8, borderRadius: 4, backgroundColor: CORAL},
-  resultHalo: {width: 78, height: 78, borderRadius: 39, alignItems: 'center', justifyContent: 'center'},
-  successHalo: {backgroundColor: '#EAFBF4'},
-  failedHalo: {backgroundColor: '#FEF2F2'},
-  resultTitle: {color: DARK, fontSize: 18, fontWeight: '800', textAlign: 'center', fontFamily: SANS},
-  resultBody: {color: '#8A94A6', fontSize: 12, lineHeight: 18, textAlign: 'center', fontFamily: SANS},
-  primaryButton: {backgroundColor: CORAL, borderRadius: 13, paddingVertical: 14, alignItems: 'center', marginTop: 2, alignSelf: 'stretch', shadowColor: CORAL, shadowOffset: {width: 0, height: 6}, shadowOpacity: 0.18, shadowRadius: 12, elevation: 5},
-  primaryText: {color: '#FFFFFF', fontSize: 14, fontWeight: '800', fontFamily: SANS},
-  ghostButton: {paddingVertical: 11, alignItems: 'center', alignSelf: 'stretch'},
-  ghostText: {color: CORAL, fontSize: 12, fontWeight: '800', fontFamily: SANS},
-  error: {color: RED, fontSize: 12, fontWeight: '700', fontFamily: SANS},
+  providerDot: {width: 6, height: 6, borderRadius: 3, backgroundColor: CORAL},
+  providerLabel: {color: 'rgba(255,255,255,0.78)', fontSize: 12, fontWeight: '700', fontFamily: SANS, letterSpacing: 0.5},
+  heroRule: {width: 36, height: 3, backgroundColor: CORAL, borderRadius: 2},
+  curveShadow: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 120,
+    borderTopLeftRadius: CARD_RADIUS,
+    borderTopRightRadius: CARD_RADIUS,
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: -14},
+    shadowOpacity: 0.18,
+    shadowRadius: 28,
+    elevation: 22,
+  },
+  card: {
+    flex: 1,
+    backgroundColor: OFF,
+    borderTopLeftRadius: CARD_RADIUS,
+    borderTopRightRadius: CARD_RADIUS,
+    marginTop: -CARD_RADIUS,
+    paddingTop: 16,
+  },
+  handle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#D1D9E0',
+    alignSelf: 'center',
+    marginBottom: 8,
+  },
+  scroll: {flex: 1},
+  scrollContent: {flexGrow: 1, padding: 24, paddingBottom: 72},
+  detailsScrollContent: {paddingBottom: 280},
 });
