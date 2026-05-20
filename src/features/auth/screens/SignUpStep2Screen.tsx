@@ -15,6 +15,7 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useAppStore} from '@shared/store/appStore';
 import {useForm, Controller} from 'react-hook-form';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import {getSystemFont} from '@styles/typography';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import CountryPicker, {Country} from 'react-native-country-picker-modal';
 
@@ -29,8 +30,8 @@ interface SignUpStep2FormData {
 const CORAL = '#F27649';
 const SLATE = '#3D4A5C';
 const DARK  = '#1A2535';
-const SERIF = Platform.OS === 'ios' ? 'Georgia' : 'serif';
-const SANS  = Platform.OS === 'ios' ? 'Helvetica Neue' : 'sans-serif';
+const SERIF = getSystemFont('medium');
+const SANS = getSystemFont();
 const CARD_RADIUS = 36;
 
 const countryCodeToFlagEmoji = (code: string) =>
@@ -207,7 +208,7 @@ const gs = StyleSheet.create({
     shadowOffset:{width:0,height:4},
     shadowOpacity:0.20, shadowRadius:10, elevation:5,
   },
-  chipText:       {color:'#9CA3AF', fontSize:14, fontWeight:'600', fontFamily:SANS},
+  chipText:       {color:'#9CA3AF', fontSize:14, fontWeight:'600', fontFamily:getSystemFont('medium')},
   chipTextActive: {color:'#FFFFFF'},
   errorRow: {flexDirection:'row', alignItems:'center', marginTop:5, marginLeft:2, gap:4},
   errorText:{color:'#EF4444', fontSize:12, fontFamily:SANS},
@@ -553,7 +554,7 @@ const s = StyleSheet.create({
   stepLabel:{
     color:'rgba(255,255,255,0.35)', fontSize:11,
     letterSpacing:2, textTransform:'uppercase',
-    fontFamily:SANS, fontWeight:'600',
+    fontFamily:getSystemFont('medium'), fontWeight:'600',
   },
   headline:{
     color:'#FFFFFF', fontSize:40, fontWeight:'700',

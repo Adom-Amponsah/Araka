@@ -12,8 +12,11 @@ import {
   Modal,
   TouchableWithoutFeedback,
 } from 'react-native';
+import {useNavigation} from '@react-navigation/native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import {getSystemFont} from '@styles/typography';
+import {selectUnreadCount, useNotificationStore} from '@features/notifications/store/notificationStore';
 
 const {width, height} = Dimensions.get('window');
 
@@ -22,8 +25,9 @@ const SLATE = '#3D4A5C';
 const DARK  = '#1A2535';
 const OFF   = '#F4F6FA';
 const GREEN = '#10B981';
-const SERIF = Platform.OS === 'ios' ? 'Georgia' : 'serif';
-const SANS  = Platform.OS === 'ios' ? 'Helvetica Neue' : 'sans-serif';
+const DISPLAY = getSystemFont('condensed');
+const SERIF = getSystemFont('medium');
+const SANS = getSystemFont();
 const CARD_RADIUS = 36;
 
 // ─────────────────────────────────────────────
@@ -54,46 +58,46 @@ interface Transaction {
 // DUMMY DATA
 // ─────────────────────────────────────────────
 const ALL_TRANSACTIONS: Transaction[] = [
-  {id:'t01',label:'MTN Airtime',provider:'MTN Mobile',category:'airtime',type:'out',amount:20.00,currency:'GHS',
+  {id:'t01',label:'MTN Airtime',provider:'MTN Mobile',category:'airtime',type:'out',amount:20.00,currency:'CDF',
     date:new Date('2026-04-28T09:14:00'),status:'completed',reference:'ARK-20260428-0014',
     icon:'phone-portrait-outline',iconBg:'#FFF8E6',iconColor:'#F59E0B'},
-  {id:'t02',label:'SNEL Token',provider:'Société Nationale',category:'electricity',type:'out',amount:45.00,currency:'GHS',
+  {id:'t02',label:'SNEL Token',provider:'Société Nationale',category:'electricity',type:'out',amount:45.00,currency:'CDF',
     date:new Date('2026-04-28T07:02:00'),status:'completed',reference:'ARK-20260428-0009',
     icon:'flash-outline',iconBg:'#FEF3E2',iconColor:'#D97706',note:'Meter: 0041 2278 3456'},
-  {id:'t03',label:'Wallet Top-up',provider:'Bank Transfer',category:'credit',type:'in',amount:500.00,currency:'GHS',
+  {id:'t03',label:'Wallet Top-up',provider:'Bank Transfer',category:'credit',type:'in',amount:500.00,currency:'CDF',
     date:new Date('2026-04-27T16:45:00'),status:'completed',reference:'ARK-20260427-0031',
     icon:'arrow-down-outline',iconBg:'#EDFBF4',iconColor:GREEN},
-  {id:'t04',label:'Airtel Data Bundle',provider:'Airtel',category:'data',type:'out',amount:15.00,currency:'GHS',
+  {id:'t04',label:'Airtel Data Bundle',provider:'Airtel',category:'data',type:'out',amount:15.00,currency:'CDF',
     date:new Date('2026-04-27T11:30:00'),status:'completed',reference:'ARK-20260427-0018',
     icon:'wifi-outline',iconBg:'#FEE8DF',iconColor:'#C0392B'},
-  {id:'t05',label:'Canal+ Renewal',provider:'Canal Plus',category:'tv',type:'out',amount:80.00,currency:'GHS',
+  {id:'t05',label:'Canal+ Renewal',provider:'Canal Plus',category:'tv',type:'out',amount:80.00,currency:'CDF',
     date:new Date('2026-04-26T14:00:00'),status:'completed',reference:'ARK-20260426-0022',
     icon:'tv-outline',iconBg:'#1A1A2E',iconColor:'#FFFFFF',note:'Subscriber ID 3457843'},
-  {id:'t06',label:'Send to Kwame',provider:'M-Pesa',category:'money',type:'out',amount:120.00,currency:'GHS',
+  {id:'t06',label:'Send to Kwame',provider:'M-Pesa',category:'money',type:'out',amount:120.00,currency:'CDF',
     date:new Date('2026-04-26T09:55:00'),status:'completed',reference:'ARK-20260426-0011',
     icon:'paper-plane-outline',iconBg:'#EDFBF4',iconColor:GREEN},
-  {id:'t07',label:'GOtv Subscription',provider:'GOtv',category:'tv',type:'out',amount:35.00,currency:'GHS',
+  {id:'t07',label:'GOtv Subscription',provider:'GOtv',category:'tv',type:'out',amount:35.00,currency:'CDF',
     date:new Date('2026-04-25T20:10:00'),status:'pending',reference:'ARK-20260425-0045',
     icon:'tv-outline',iconBg:'#FFF8E6',iconColor:'#F59E0B'},
-  {id:'t08',label:'Vodacom Airtime',provider:'Vodacom',category:'airtime',type:'out',amount:10.00,currency:'GHS',
+  {id:'t08',label:'Vodacom Airtime',provider:'Vodacom',category:'airtime',type:'out',amount:10.00,currency:'CDF',
     date:new Date('2026-04-25T13:20:00'),status:'completed',reference:'ARK-20260425-0034',
     icon:'phone-portrait-outline',iconBg:'#FEE8DF',iconColor:'#E53E3E'},
-  {id:'t09',label:'Salary Credit',provider:'Employer Ltd',category:'credit',type:'in',amount:2800.00,currency:'GHS',
+  {id:'t09',label:'Salary Credit',provider:'Employer Ltd',category:'credit',type:'in',amount:2800.00,currency:'CDF',
     date:new Date('2026-04-24T08:00:00'),status:'completed',reference:'ARK-20260424-0003',
     icon:'arrow-down-outline',iconBg:'#EDFBF4',iconColor:GREEN},
-  {id:'t10',label:'Spectranet Internet',provider:'Spectranet',category:'data',type:'out',amount:60.00,currency:'GHS',
+  {id:'t10',label:'Spectranet Internet',provider:'Spectranet',category:'data',type:'out',amount:60.00,currency:'CDF',
     date:new Date('2026-04-23T16:00:00'),status:'failed',reference:'ARK-20260423-0028',
     icon:'globe-outline',iconBg:'#E8F4FD',iconColor:'#2980B9'},
-  {id:'t11',label:'EKEDC Token',provider:'Eko Electricity',category:'electricity',type:'out',amount:55.00,currency:'GHS',
+  {id:'t11',label:'EKEDC Token',provider:'Eko Electricity',category:'electricity',type:'out',amount:55.00,currency:'CDF',
     date:new Date('2026-04-22T10:45:00'),status:'completed',reference:'ARK-20260422-0019',
     icon:'flash-outline',iconBg:'#FEF3E2',iconColor:'#D97706',note:'Meter: 0041 2278 3456'},
-  {id:'t12',label:'MTN Data Bundle',provider:'MTN',category:'data',type:'out',amount:25.00,currency:'GHS',
+  {id:'t12',label:'MTN Data Bundle',provider:'MTN',category:'data',type:'out',amount:25.00,currency:'CDF',
     date:new Date('2026-04-21T08:30:00'),status:'completed',reference:'ARK-20260421-0007',
     icon:'wifi-outline',iconBg:'#FFF8E6',iconColor:'#F59E0B'},
-  {id:'t13',label:'Orange Money',provider:'Orange',category:'money',type:'in',amount:150.00,currency:'GHS',
+  {id:'t13',label:'Orange Money',provider:'Orange',category:'money',type:'in',amount:150.00,currency:'CDF',
     date:new Date('2026-04-20T14:10:00'),status:'completed',reference:'ARK-20260420-0015',
     icon:'paper-plane-outline',iconBg:'#FEF3E2',iconColor:'#D97706'},
-  {id:'t14',label:'Glo Airtime',provider:'Glo Mobile',category:'airtime',type:'out',amount:5.00,currency:'GHS',
+  {id:'t14',label:'Glo Airtime',provider:'Glo Mobile',category:'airtime',type:'out',amount:5.00,currency:'CDF',
     date:new Date('2026-04-19T09:00:00'),status:'completed',reference:'ARK-20260419-0002',
     icon:'phone-portrait-outline',iconBg:'#EDFBF4',iconColor:'#10B981'},
 ];
@@ -274,7 +278,7 @@ const fs = StyleSheet.create({
     alignItems:'center',justifyContent:'center',
   },
   optionInfo:{flex:1},
-  optionLabel:{color:'#6B7280',fontSize:15,fontWeight:'600',fontFamily:SANS,letterSpacing:0.1,marginBottom:2},
+  optionLabel:{color:'#6B7280',fontSize:15,fontWeight:'600',fontFamily:getSystemFont('medium'),letterSpacing:0.1,marginBottom:2},
   optionSub:  {color:'#9CA3AF',fontSize:12,fontFamily:SANS,letterSpacing:0.1},
   checkWrap:  {width:28,height:28,borderRadius:8,backgroundColor:CORAL+'15',alignItems:'center',justifyContent:'center'},
 });
@@ -335,7 +339,7 @@ function DetailSheet({
           </View>
           <Text style={det.providerLabel}>{txn.provider}</Text>
           <Text style={[det.amount,{color: isOut ? DARK : GREEN}]}>
-            {isOut?'−':'+'}GHS {txn.amount.toFixed(2)}
+            {isOut?'−':'+'}CDF {txn.amount.toFixed(2)}
           </Text>
           <Text style={det.txnName}>{txn.label}</Text>
           <View style={[det.statusBadge,{backgroundColor:statusCfg.bg}]}>
@@ -404,14 +408,14 @@ const det = StyleSheet.create({
     shadowOpacity:0.09,shadowRadius:12,elevation:4,
   },
   providerLabel:{color:'#9CA3AF',fontSize:11,fontFamily:SANS,letterSpacing:1.5,textTransform:'uppercase'},
-  amount:{fontSize:38,fontWeight:'700',fontFamily:SERIF,letterSpacing:-1.5,lineHeight:42},
+  amount:{fontSize:38,fontWeight:'700',fontFamily:DISPLAY,letterSpacing:-1.5,lineHeight:42},
   txnName:{color:SLATE,fontSize:14,fontFamily:SANS,letterSpacing:0.2},
   statusBadge:{flexDirection:'row',alignItems:'center',gap:5,borderRadius:20,paddingHorizontal:12,paddingVertical:5,marginTop:2},
-  statusText:{fontSize:12,fontWeight:'700',fontFamily:SANS},
+  statusText:{fontSize:12,fontWeight:'700',fontFamily:getSystemFont('bold')},
 
   divider:{flexDirection:'row',alignItems:'center',gap:10,marginBottom:14},
   dividerLine:{flex:1,height:1,backgroundColor:'#F0F3F7'},
-  dividerLabel:{color:'#C4CDD8',fontSize:10,fontFamily:SANS,fontWeight:'700',letterSpacing:2},
+  dividerLabel:{color:'#C4CDD8',fontSize:10,fontFamily:getSystemFont('bold'),fontWeight:'700',letterSpacing:2},
 
   rows:{gap:0,marginBottom:20},
   row:{
@@ -420,7 +424,7 @@ const det = StyleSheet.create({
     borderBottomWidth:1,borderBottomColor:'#F4F6FA',
   },
   rowLabel:{color:'#9CA3AF',fontSize:13,fontFamily:SANS},
-  rowValue:{color:DARK,fontSize:13,fontWeight:'600',fontFamily:SANS,maxWidth:'58%',textAlign:'right'},
+  rowValue:{color:DARK,fontSize:13,fontWeight:'600',fontFamily:getSystemFont('medium'),maxWidth:'58%',textAlign:'right'},
   mono:{fontFamily:Platform.OS==='ios'?'Courier New':'monospace',fontSize:11},
 
   repeatBtn:{
@@ -429,9 +433,9 @@ const det = StyleSheet.create({
     marginBottom:10,
     shadowColor:DARK,shadowOffset:{width:0,height:5},shadowOpacity:0.20,shadowRadius:12,elevation:6,
   },
-  repeatBtnText:{color:'#FFFFFF',fontSize:15,fontWeight:'700',fontFamily:SANS,letterSpacing:0.3},
+  repeatBtnText:{color:'#FFFFFF',fontSize:15,fontWeight:'700',fontFamily:getSystemFont('bold'),letterSpacing:0.3},
   closeBtn:{paddingVertical:13,alignItems:'center'},
-  closeBtnText:{color:'#9CA3AF',fontSize:14,fontFamily:SANS,fontWeight:'600'},
+  closeBtnText:{color:'#9CA3AF',fontSize:14,fontFamily:getSystemFont('medium'),fontWeight:'600'},
 });
 
 // ─────────────────────────────────────────────
@@ -473,7 +477,7 @@ function TxnRow({txn, onPress, index}: {txn:Transaction;onPress:()=>void;index:n
         {/* Amount */}
         <View style={tw.right}>
           <Text style={[tw.amount,{color: isOut ? DARK : GREEN}]}>
-            {isOut?'−':'+'}GHS {txn.amount.toFixed(2)}
+            {isOut?'−':'+'}CDF {txn.amount.toFixed(2)}
           </Text>
         </View>
       </Pressable>
@@ -500,10 +504,10 @@ const tw = StyleSheet.create({
     borderWidth:1.5,borderColor:'#FFFFFF',
   },
   info:{flex:1},
-  label:{color:DARK,fontSize:14,fontWeight:'600',fontFamily:SANS,letterSpacing:0.1,marginBottom:3},
+  label:{color:DARK,fontSize:14,fontWeight:'600',fontFamily:getSystemFont('medium'),letterSpacing:0.1,marginBottom:3},
   sub:  {color:'#9CA3AF',fontSize:11,fontFamily:SANS},
   right:{alignItems:'flex-end',gap:4},
-  amount:{fontSize:14,fontWeight:'700',fontFamily:SANS,letterSpacing:0.1},
+  amount:{fontSize:14,fontWeight:'700',fontFamily:getSystemFont('bold'),letterSpacing:0.1},
 });
 
 // ─────────────────────────────────────────────
@@ -519,7 +523,7 @@ function DayHeader({label}: {label:string}) {
 }
 const dh = StyleSheet.create({
   row:{flexDirection:'row',alignItems:'center',gap:10,marginBottom:10,marginTop:6},
-  label:{color:SLATE,fontSize:12,fontWeight:'700',fontFamily:SANS,letterSpacing:0.5},
+  label:{color:SLATE,fontSize:12,fontWeight:'700',fontFamily:getSystemFont('bold'),letterSpacing:0.5},
   line: {flex:1,height:1,backgroundColor:'#E8EDF2'},
 });
 
@@ -543,14 +547,25 @@ const ab = StyleSheet.create({
     borderRadius:20,paddingHorizontal:10,paddingVertical:5,
     backgroundColor:CORAL+'10',
   },
-  label:{color:CORAL,fontSize:11,fontFamily:SANS,fontWeight:'700',letterSpacing:0.3},
+  label:{color:CORAL,fontSize:11,fontFamily:getSystemFont('bold'),fontWeight:'700',letterSpacing:0.3},
 });
 
 // ─────────────────────────────────────────────
 // MAIN SCREEN
 // ─────────────────────────────────────────────
 export function TransactionsScreen() {
+  const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
+  const unreadNotifications = useNotificationStore(selectUnreadCount);
+
+  const openNotifications = React.useCallback(() => {
+    const parentNavigation = navigation.getParent();
+    if (parentNavigation) {
+      parentNavigation.navigate('Notifications');
+      return;
+    }
+    navigation.navigate('Notifications');
+  }, [navigation]);
 
   const [period,        setPeriod]        = React.useState<FilterPeriod>('all');
   const [filterVisible, setFilterVisible] = React.useState(false);
@@ -602,23 +617,32 @@ export function TransactionsScreen() {
           <View style={s.ringInner}/>
 
           <Animated.View style={[s.topBar,{opacity:heroFade,transform:[{translateY:heroY}]}]}>
-            {/* Wordmark */}
-            <View style={s.wordRow}>
-              <View style={s.wordDot}/>
-              <Text style={s.wordmark}>ARAKA</Text>
-            </View>
-            {/* Filter button */}
-            <Pressable onPress={()=>setFilterVisible(true)} style={s.filterBtn}>
-              <Ionicons name="options-outline" size={18} color="rgba(255,255,255,0.85)"/>
-              {filterHasValue && <View style={s.filterDot}/>}
+            {/* Menu icon */}
+            <Pressable hitSlop={10}>
+              <Ionicons name="menu" size={28} color="#FFFFFF" />
             </Pressable>
+            {/* Filter + Notification */}
+            <View style={s.rightIcons}>
+              <Pressable onPress={()=>setFilterVisible(true)} style={s.filterBtn}>
+                <Ionicons name="options-outline" size={18} color="rgba(255,255,255,0.85)"/>
+                {filterHasValue && <View style={s.filterDot}/>}
+              </Pressable>
+              <Pressable hitSlop={10} onPress={openNotifications} style={s.notificationBtn}>
+                <Ionicons name="notifications-outline" size={22} color="#FFFFFF" />
+                {unreadNotifications > 0 && (
+                  <View style={s.notificationDot}>
+                    <Text style={s.notificationCount}>{unreadNotifications}</Text>
+                  </View>
+                )}
+              </Pressable>
+            </View>
           </Animated.View>
 
           <Animated.View style={{opacity:heroFade,transform:[{translateY:heroY}]}}>
             <Text style={s.greetSub}>Your payment history</Text>
-            <Text style={s.greetName}>Activity.</Text>
+            <Text style={s.greetName}>Activity</Text>
             <View style={s.ruleRow}>
-              <View style={s.greetRule}/>
+              {/* <View style={s.greetRule}/> */}
               {/* Active period badge */}
               <ActiveBadge period={period} onClear={()=>setPeriod('all')}/>
             </View>
@@ -686,31 +710,28 @@ export function TransactionsScreen() {
 
 // ─────────────────────────────────────────────
 const s = StyleSheet.create({
-  root:  {flex:1,backgroundColor:SLATE},
+  root:  {flex:1,backgroundColor:CORAL},
   scroll:{flex:1},
 
   hero:{
-    backgroundColor:SLATE,
+    backgroundColor:CORAL,
     paddingHorizontal:24,paddingBottom:56,
   },
   ringOuter:{
     position:'absolute',top:-28,right:-48,
     width:190,height:190,borderRadius:95,
-    borderWidth:32,borderColor:'rgba(242,118,73,0.10)',
+    borderWidth:32,borderColor:'rgba(61,74,92,0.15)',
   },
   ringInner:{
     position:'absolute',top:22,right:12,
     width:96,height:96,borderRadius:48,
-    borderWidth:1.5,borderColor:'rgba(242,118,73,0.22)',
+    borderWidth:1.5,borderColor:'rgba(61,74,92,0.3)',
   },
   topBar:{
     flexDirection:'row',alignItems:'center',
     justifyContent:'space-between',marginBottom:28,
   },
-  wordRow:  {flexDirection:'row',alignItems:'center',gap:7},
-  wordDot:  {width:8,height:8,borderRadius:4,backgroundColor:CORAL},
-  wordmark: {color:'#FFFFFF',fontSize:14,fontWeight:'800',letterSpacing:4,fontFamily:SANS},
-
+  rightIcons:{flexDirection:'row',alignItems:'center',gap:8},
   filterBtn:{
     width:38,height:38,borderRadius:12,
     borderWidth:1,borderColor:'rgba(255,255,255,0.2)',
@@ -721,13 +742,29 @@ const s = StyleSheet.create({
     position:'absolute',top:7,right:7,
     width:7,height:7,borderRadius:4,
     backgroundColor:CORAL,
-    borderWidth:1.5,borderColor:SLATE,
+    borderWidth:1.5,borderColor:DARK,
+  },
+  notificationBtn:{
+    width:38,height:38,borderRadius:12,
+    alignItems:'center',justifyContent:'center',
+    position:'relative',
+  },
+  notificationDot:{
+    position:'absolute',right:-5,top:-5,
+    minWidth:16,height:16,borderRadius:8,
+    paddingHorizontal:3,backgroundColor:'#FFFFFF',
+    alignItems:'center',justifyContent:'center',
+    borderWidth:1.5,borderColor:DARK,
+  },
+  notificationCount:{
+    color:DARK,fontSize:9,fontWeight:'800',
+    fontFamily:getSystemFont('bold'),lineHeight:11,
   },
 
   greetSub: {color:'rgba(255,255,255,0.42)',fontSize:14,fontFamily:SANS,letterSpacing:0.4,marginBottom:4},
-  greetName:{color:'#FFFFFF',fontSize:40,fontWeight:'700',fontFamily:SERIF,letterSpacing:-1,lineHeight:44},
+  greetName:{color:'#FFFFFF',fontSize:32,fontWeight:'700',fontFamily:SERIF,letterSpacing:-1,lineHeight:44},
   ruleRow:  {flexDirection:'row',alignItems:'center',gap:12,marginTop:12},
-  greetRule:{width:36,height:3,backgroundColor:CORAL,borderRadius:2},
+  greetRule:{width:36,height:3,backgroundColor:DARK,borderRadius:2},
 
   curveShadow:{
     position:'absolute',bottom:0,left:0,right:0,height:120,
@@ -738,7 +775,7 @@ const s = StyleSheet.create({
   },
   card:{
     flex:1,
-    backgroundColor:OFF,
+    backgroundColor:'#FFFFFF',
     borderTopLeftRadius:CARD_RADIUS,borderTopRightRadius:CARD_RADIUS,
     marginTop:-CARD_RADIUS,paddingTop:16,
     paddingBottom:32,
@@ -767,5 +804,5 @@ const s = StyleSheet.create({
     marginTop:8,borderWidth:1,borderColor:CORAL,
     borderRadius:20,paddingHorizontal:20,paddingVertical:9,
   },
-  emptyBtnText:{color:CORAL,fontSize:13,fontWeight:'700',fontFamily:SANS},
+  emptyBtnText:{color:CORAL,fontSize:13,fontWeight:'700',fontFamily:getSystemFont('bold')},
 });

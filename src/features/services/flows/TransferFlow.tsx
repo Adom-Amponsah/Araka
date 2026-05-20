@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import {getSystemFont} from '@styles/typography';
 import {PAYMENT_TELCOS, PaymentTelcoId} from '../registry/serviceRegistry';
 import {useServiceSessionStore} from '../store/serviceSessionStore';
 import {
@@ -26,8 +27,9 @@ const DARK = '#1A2535';
 const OFF = '#F4F6FA';
 const GREEN = '#10B981';
 const RED = '#EF4444';
-const SERIF = Platform.OS === 'ios' ? 'Georgia' : 'serif';
-const SANS = Platform.OS === 'ios' ? 'Helvetica Neue' : 'sans-serif';
+const DISPLAY = getSystemFont('condensed');
+const SERIF = getSystemFont('medium');
+const SANS = getSystemFont();
 
 const STEPS = ['details', 'review', 'paymentMethod', 'mobileMoneyDetails', 'paymentConfirmation'];
 
@@ -98,7 +100,7 @@ function StepDots({currentStep}: {currentStep: string}) {
 const dot = StyleSheet.create({
   row: {flexDirection: 'row', gap: 6, alignItems: 'center'},
   base: {width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.28)'},
-  active: {width: 22, backgroundColor: CORAL},
+  active: {width: 22, backgroundColor: '#FFFFFF'},
   done: {backgroundColor: 'rgba(255,255,255,0.72)'},
 });
 
@@ -211,9 +213,9 @@ function FlowInput({
 const fi = StyleSheet.create({
   group: {gap: 8},
   labelRow: {flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'},
-  label: {color: DARK, fontSize: 13, fontWeight: '700', fontFamily: SANS, letterSpacing: 0.1},
+  label: {color: DARK, fontSize: 13, fontWeight: '700', fontFamily: getSystemFont('bold'), letterSpacing: 0.1},
   verifiedBadge: {flexDirection: 'row', alignItems: 'center', gap: 4},
-  verified: {color: GREEN, fontSize: 12, fontWeight: '700', fontFamily: SANS},
+  verified: {color: GREEN, fontSize: 12, fontWeight: '700', fontFamily: getSystemFont('bold')},
   inputWrap: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -225,7 +227,7 @@ const fi = StyleSheet.create({
     gap: 10,
   },
   icon: {flexShrink: 0},
-  prefix: {color: '#9CA3AF', fontSize: 15, fontFamily: SANS, fontWeight: '600'},
+  prefix: {color: '#9CA3AF', fontSize: 15, fontFamily: getSystemFont('medium'), fontWeight: '600'},
   input: {flex: 1, fontSize: 16, color: DARK, fontFamily: SANS, padding: 0},
 });
 
@@ -303,7 +305,7 @@ const btn = StyleSheet.create({
     shadowRadius: 12,
     elevation: 5,
   },
-  primaryText: {color: '#FFFFFF', fontSize: 16, fontWeight: '800', fontFamily: SANS, letterSpacing: 0.3},
+  primaryText: {color: '#FFFFFF', fontSize: 16, fontWeight: '800', fontFamily: getSystemFont('bold'), letterSpacing: 0.3},
   primaryDisabled: {
     backgroundColor: '#E5EAF0',
     shadowOpacity: 0,
@@ -311,9 +313,9 @@ const btn = StyleSheet.create({
   },
   primaryTextDisabled: {color: '#9CA3AF'},
   secondary: {borderRadius: 18, paddingVertical: 16, alignItems: 'center'},
-  secondaryText: {color: SLATE, fontSize: 14, fontWeight: '700', fontFamily: SANS},
+  secondaryText: {color: SLATE, fontSize: 14, fontWeight: '700', fontFamily: getSystemFont('bold')},
   errorWrap: {flexDirection: 'row', alignItems: 'center', gap: 6},
-  error: {color: RED, fontSize: 13, fontWeight: '600', fontFamily: SANS, flex: 1},
+  error: {color: RED, fontSize: 13, fontWeight: '600', fontFamily: getSystemFont('medium'), flex: 1},
 });
 
 function OptionCard({
@@ -389,10 +391,10 @@ const oc = StyleSheet.create({
   },
   text: {flex: 1, gap: 3},
   titleRow: {flexDirection: 'row', alignItems: 'center', gap: 8},
-  title: {color: DARK, fontSize: 15, fontWeight: '800', fontFamily: SANS},
+  title: {color: DARK, fontSize: 15, fontWeight: '800', fontFamily: getSystemFont('bold')},
   body: {color: '#6B7280', fontSize: 12, fontFamily: SANS, lineHeight: 17},
   badge: {backgroundColor: '#EDFBF4', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3},
-  badgeText: {color: GREEN, fontSize: 10, fontWeight: '800', fontFamily: SANS},
+  badgeText: {color: GREEN, fontSize: 10, fontWeight: '800', fontFamily: getSystemFont('bold')},
   arrow: {width: 32, height: 32, borderRadius: 10, backgroundColor: '#FFF1EA', alignItems: 'center', justifyContent: 'center', flexShrink: 0},
 });
 
@@ -423,7 +425,7 @@ function SummaryRow({label, value, strong}: {label: string; value: string; stron
 const sr = StyleSheet.create({
   row: {flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 6},
   label: {color: '#6B7280', fontSize: 13, fontFamily: SANS},
-  value: {color: DARK, fontSize: 14, fontWeight: '700', fontFamily: SANS},
+  value: {color: DARK, fontSize: 14, fontWeight: '700', fontFamily: getSystemFont('bold')},
   strong: {fontSize: 18, color: CORAL, fontFamily: SERIF},
 });
 
@@ -497,22 +499,22 @@ export function TransferFlow() {
         <View style={s.ringInner} />
 
         <View style={s.topBar}>
-          <View style={s.wordRow}>
-            <View style={s.wordDot} />
-            <Text style={s.wordmark}>ARAKA</Text>
-          </View>
-          <Pressable onPress={closeFlow} style={s.closeBtn}>
+              <View style={s.providerBadge}>
+                <View style={s.providerDot} />
+                <Text style={s.providerLabel}>{provider.name} Transfer</Text>
+              </View>
+           <Pressable onPress={closeFlow} style={s.closeBtn}>
             <Ionicons name="close" size={18} color="#FFFFFF" />
           </Pressable>
         </View>
 
-        <View style={s.headWrap}>
-          <View style={s.providerBadge}>
+        {/* <View style={s.headWrap}> */}
+           {/* <View style={s.providerBadge}>
             <View style={s.providerDot} />
             <Text style={s.providerLabel}>{provider.name} Transfer</Text>
-          </View>
-          <View style={s.heroRule} />
-        </View>
+          </View> */}
+          {/* <View style={s.heroRule} /> */}
+        {/* </View> */}
 
         {!isTerminal && <StepDots currentStep={store.step} />}
       </Animated.View>
@@ -671,7 +673,7 @@ function DetailsStep({
         />
       </FadeSlideIn>
 
-      <FadeSlideIn delay={150}>
+      {/* <FadeSlideIn delay={150}>
         <FlowInput
           label="Smart card"
           placeholder="Last 4 digits"
@@ -681,7 +683,7 @@ function DetailsStep({
           icon="keypad-outline"
           rightLabel={smartCardReady ? 'Ready' : undefined}
         />
-      </FadeSlideIn>
+      </FadeSlideIn> */}
 
       <FadeSlideIn delay={190}>
         <FlowInput
@@ -855,7 +857,7 @@ const rv = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 12,
   },
-  breakdownEyebrow: {color: CORAL, fontSize: 11, fontWeight: '800', fontFamily: SANS, letterSpacing: 1.4, textTransform: 'uppercase'},
+  breakdownEyebrow: {color: CORAL, fontSize: 11, fontWeight: '800', fontFamily: getSystemFont('bold'), letterSpacing: 1.4, textTransform: 'uppercase'},
   breakdownTitle: {color: DARK, fontSize: 24, fontWeight: '700', fontFamily: SERIF, letterSpacing: -0.5, marginTop: 2},
   headIcon: {
     width: 42,
@@ -876,8 +878,8 @@ const rv = StyleSheet.create({
     gap: 3,
   },
   identityWide: {flexBasis: '100%'},
-  identityLabel: {color: '#7B8491', fontSize: 11, fontWeight: '700', fontFamily: SANS},
-  identityValue: {color: DARK, fontSize: 12, fontWeight: '800', fontFamily: SANS},
+  identityLabel: {color: '#7B8491', fontSize: 11, fontWeight: '700', fontFamily: getSystemFont('bold')},
+  identityValue: {color: DARK, fontSize: 12, fontWeight: '800', fontFamily: getSystemFont('bold')},
   timeline: {gap: 22, position: 'relative', paddingVertical: 3},
   rail: {
     position: 'absolute',
@@ -893,9 +895,9 @@ const rv = StyleSheet.create({
   dotSlate: {backgroundColor: SLATE},
   dotGreen: {backgroundColor: GREEN},
   timelineCopy: {flex: 1, gap: 2},
-  timelineLabel: {color: DARK, fontSize: 13, fontWeight: '800', fontFamily: SANS},
+  timelineLabel: {color: DARK, fontSize: 13, fontWeight: '800', fontFamily: getSystemFont('bold')},
   timelineHint: {color: '#8B95A3', fontSize: 11, fontFamily: SANS},
-  timelineValue: {color: DARK, fontSize: 13, fontWeight: '800', fontFamily: SANS},
+  timelineValue: {color: DARK, fontSize: 13, fontWeight: '800', fontFamily: getSystemFont('bold')},
   totalPanel: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -905,8 +907,8 @@ const rv = StyleSheet.create({
     borderRadius: 18,
     padding: 16,
   },
-  totalLabel: {color: DARK, fontSize: 13, fontWeight: '800', fontFamily: SANS},
-  totalValue: {color: CORAL, fontSize: 20, fontWeight: '700', fontFamily: SERIF, letterSpacing: -0.3},
+  totalLabel: {color: DARK, fontSize: 13, fontWeight: '800', fontFamily: getSystemFont('bold')},
+  totalValue: {color: CORAL, fontSize: 20, fontWeight: '700', fontFamily: DISPLAY, letterSpacing: -0.3},
 });
 
 function PaymentMethodStep({
@@ -1050,7 +1052,7 @@ function MobileMoneyStep({
 
 const mm = StyleSheet.create({
   networkSection: {gap: 10},
-  networkLabel: {color: DARK, fontSize: 13, fontWeight: '700', fontFamily: SANS},
+  networkLabel: {color: DARK, fontSize: 13, fontWeight: '700', fontFamily: getSystemFont('bold')},
   networkRow: {flexDirection: 'row', flexWrap: 'wrap', gap: 8},
   network: {
     flexDirection: 'row',
@@ -1066,7 +1068,7 @@ const mm = StyleSheet.create({
   networkActive: {borderColor: DARK, backgroundColor: DARK},
   networkDot: {width: 8, height: 8, borderRadius: 4, backgroundColor: '#D1D9E0'},
   networkDotActive: {backgroundColor: CORAL},
-  networkText: {color: SLATE, fontSize: 13, fontWeight: '700', fontFamily: SANS},
+  networkText: {color: SLATE, fontSize: 13, fontWeight: '700', fontFamily: getSystemFont('bold')},
   networkTextActive: {color: '#FFFFFF'},
   notice: {
     flexDirection: 'row',
@@ -1261,9 +1263,9 @@ const ef = StyleSheet.create({
 const CARD_RADIUS = 36;
 
 const s = StyleSheet.create({
-  root: {flex: 1, backgroundColor: SLATE},
+  root: {flex: 1, backgroundColor: CORAL},
   hero: {
-    backgroundColor: SLATE,
+    backgroundColor: CORAL,
     paddingHorizontal: 24,
     paddingTop: 56,
     paddingBottom: 86,
@@ -1278,7 +1280,7 @@ const s = StyleSheet.create({
     height: 200,
     borderRadius: 100,
     borderWidth: 32,
-    borderColor: 'rgba(242,118,73,0.09)',
+    borderColor: 'rgba(61,74,92,0.15)',
   },
   ringInner: {
     position: 'absolute',
@@ -1288,7 +1290,7 @@ const s = StyleSheet.create({
     height: 100,
     borderRadius: 50,
     borderWidth: 1.5,
-    borderColor: 'rgba(242,118,73,0.20)',
+    borderColor: 'rgba(61,74,92,0.3)',
   },
   topBar: {
     flexDirection: 'row',
@@ -1304,9 +1306,7 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: 'rgba(255,255,255,0.13)',
   },
-  wordRow: {flexDirection: 'row', alignItems: 'center', gap: 7},
-  wordDot: {width: 8, height: 8, borderRadius: 4, backgroundColor: CORAL},
-  wordmark: {color: '#FFFFFF', fontSize: 14, fontWeight: '800', letterSpacing: 4, fontFamily: SANS},
+  flowTag: {color: '#FFFFFF', fontSize: 12, fontWeight: '800', letterSpacing: 1.5, textTransform: 'uppercase', fontFamily: getSystemFont('bold')},
   headWrap: {gap: 10, marginBottom: 20},
   providerBadge: {
     flexDirection: 'row',
@@ -1318,9 +1318,9 @@ const s = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
-  providerDot: {width: 6, height: 6, borderRadius: 3, backgroundColor: CORAL},
-  providerLabel: {color: 'rgba(255,255,255,0.78)', fontSize: 12, fontWeight: '700', fontFamily: SANS, letterSpacing: 0.5},
-  heroRule: {width: 36, height: 3, backgroundColor: CORAL, borderRadius: 2},
+  providerDot: {width: 6, height: 6, borderRadius: 3, backgroundColor: OFF},
+  providerLabel: {color: 'rgba(255,255,255,0.78)', fontSize: 12, fontWeight: '700', fontFamily: getSystemFont('bold'), letterSpacing: 0.5},
+  heroRule: {width: 36, height: 3, backgroundColor: DARK, borderRadius: 2},
   curveShadow: {
     position: 'absolute',
     bottom: 0,

@@ -16,6 +16,7 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useAppStore} from '@shared/store/appStore';
 import {useForm, Controller} from 'react-hook-form';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import {getSystemFont} from '@styles/typography';
 
 interface LoginFormData {
   email: string;
@@ -154,7 +155,7 @@ const floatStyles = StyleSheet.create({
   label: {
     position: 'absolute',
     left: 48,
-    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+    fontFamily: getSystemFont('medium'),
     letterSpacing: 0.2,
   },
   input: {
@@ -162,7 +163,7 @@ const floatStyles = StyleSheet.create({
     fontSize: 15,
     color: '#1A2535',
     paddingTop: 18,
-    fontFamily: Platform.OS === 'ios' ? 'Helvetica Neue' : 'sans-serif',
+    fontFamily: getSystemFont(),
     letterSpacing: 0.3,
   },
   errorRow: {
@@ -175,7 +176,7 @@ const floatStyles = StyleSheet.create({
   errorText: {
     color: '#EF4444',
     fontSize: 12,
-    fontFamily: Platform.OS === 'ios' ? 'Helvetica Neue' : 'sans-serif',
+    fontFamily: getSystemFont(),
   },
 });
 
@@ -432,31 +433,31 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 22,
     fontWeight: '700',
-    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+    fontFamily: getSystemFont('medium'),
     letterSpacing: 1,
   },
   eyebrow: {
     color: 'rgba(255,255,255,0.4)',
     fontSize: 11,
     letterSpacing: 3,
-    fontFamily: Platform.OS === 'ios' ? 'Helvetica Neue' : 'sans-serif',
+    fontFamily: getSystemFont(),
     fontWeight: '600',
     marginBottom: 10,
     textTransform: 'uppercase',
   },
   headline: {
     color: '#FFFFFF',
-    fontSize: 42,
+    fontSize: 32,
     fontWeight: '700',
-    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
-    lineHeight: 48,
-    letterSpacing: -0.5,
+    fontFamily: getSystemFont('medium'),
+    lineHeight: 36,
+    letterSpacing: 0.1,
     marginBottom: 10,
   },
   subline: {
     color: 'rgba(255,255,255,0.45)',
     fontSize: 14,
-    fontFamily: Platform.OS === 'ios' ? 'Helvetica Neue' : 'sans-serif',
+    fontFamily: getSystemFont(),
     letterSpacing: 0.3,
   },
 
@@ -509,7 +510,7 @@ const styles = StyleSheet.create({
     color: '#1A2535',
     fontSize: 24,
     fontWeight: '700',
-    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+    fontFamily: getSystemFont('medium'),
     letterSpacing: -0.3,
     marginBottom: 28,
   },
@@ -524,7 +525,7 @@ const styles = StyleSheet.create({
   forgotText: {
     color: CORAL,
     fontSize: 13,
-    fontFamily: Platform.OS === 'ios' ? 'Helvetica Neue' : 'sans-serif',
+    fontFamily: getSystemFont(),
     letterSpacing: 0.2,
   },
 
@@ -553,7 +554,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 17,
     fontWeight: '700',
-    fontFamily: Platform.OS === 'ios' ? 'Helvetica Neue' : 'sans-serif',
+    fontFamily: getSystemFont(),
     letterSpacing: 0.5,
     flex: 1,
     textAlign: 'center',
@@ -582,7 +583,7 @@ const styles = StyleSheet.create({
   divText: {
     color: '#9CA3AF',
     fontSize: 12,
-    fontFamily: Platform.OS === 'ios' ? 'Helvetica Neue' : 'sans-serif',
+    fontFamily: getSystemFont(),
     letterSpacing: 0.3,
   },
 
@@ -598,7 +599,7 @@ const styles = StyleSheet.create({
     color: '#3D4A5C',
     fontSize: 15,
     fontWeight: '600',
-    fontFamily: Platform.OS === 'ios' ? 'Helvetica Neue' : 'sans-serif',
+    fontFamily: getSystemFont(),
     letterSpacing: 0.3,
   },
 });

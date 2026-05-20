@@ -5,7 +5,6 @@ import {
   ScrollView,
   Pressable,
   StyleSheet,
-  Platform,
   Animated,
   Easing,
   Dimensions,
@@ -13,6 +12,10 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { getSystemFont } from '@styles/typography';
+import { selectUnreadCount, useNotificationStore } from '@features/notifications/store/notificationStore';
+import { useAppStore } from '@shared/store/appStore';
+import { BurgerMenu } from '../components/BurgerMenu';
 
 const { width } = Dimensions.get('window');
 
@@ -22,8 +25,8 @@ const DARK = '#0D131A';
 const SURFACE = '#FFFFFF';
 const OFF_SURFACE = '#F4F6F9';
 
-const SERIF = Platform.OS === 'ios' ? 'Georgia' : 'serif';
-const SANS = Platform.OS === 'ios' ? 'Helvetica Neue' : 'sans-serif';
+const DISPLAY = getSystemFont('condensed');
+const SANS = getSystemFont();
 
 // ─────────────────────────────────────────────
 // DATA MODELS
@@ -127,7 +130,7 @@ const useSpringEntrance = (delay: number, translateY = 40) => {
 const BENEFICIARIES = [
   { id: 'add', name: 'New', isAdd: true },
   { id: '1', name: 'David', init: 'DB', color: '#10B981' },
-  { id: '2', name: 'Babe', init: '♥', color: '#E11D48' },
+  { id: '2', name: 'Dad', init: 'D', color: '#E11D48' },
   { id: '3', name: 'Kwame', init: 'K', color: '#3B82F6' },
   { id: '4', name: 'Ama', init: 'A', color: '#8B5CF6' },
 ];
@@ -158,13 +161,13 @@ function QuickSendStrip() {
 
 const ben = StyleSheet.create({
   container: { marginBottom: 32 },
-  header: { paddingHorizontal: 24, color: '#8A94A6', fontSize: 13, fontWeight: '700', fontFamily: SANS, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 },
+  header: { paddingHorizontal: 24, color: '#8A94A6', fontSize: 13, fontWeight: '700', fontFamily: getSystemFont('bold'), textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 },
   scroll: { paddingHorizontal: 24, gap: 16 },
   nodeWrap: { alignItems: 'center', gap: 6 },
   avatar: { width: 56, height: 56, borderRadius: 22, alignItems: 'center', justifyContent: 'center', shadowColor: DARK, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 2 },
   avatarAdd: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E5E9EF', borderStyle: 'dashed' },
-  init: { color: '#FFF', fontSize: 18, fontWeight: '800', fontFamily: SANS },
-  name: { color: DARK, fontSize: 12, fontWeight: '600', fontFamily: SANS },
+  init: { color: '#FFF', fontSize: 18, fontWeight: '800', fontFamily: getSystemFont('bold') },
+  name: { color: DARK, fontSize: 12, fontWeight: '600', fontFamily: getSystemFont('medium') },
 });
 
 // ─────────────────────────────────────────────
@@ -238,19 +241,19 @@ function BentoGrid() {
 const bento = StyleSheet.create({
   container: { paddingHorizontal: 24, marginBottom: 32 },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 16 },
-  title: { color: DARK, fontSize: 18, fontWeight: '800', fontFamily: SANS, letterSpacing: -0.5 },
-  seeAll: { color: CORAL, fontSize: 13, fontWeight: '800', fontFamily: SANS, textTransform: 'uppercase', letterSpacing: 0.5 },
+  title: { color: DARK, fontSize: 18, fontWeight: '800', fontFamily: getSystemFont('bold'), letterSpacing: -0.5 },
+  seeAll: { color: CORAL, fontSize: 13, fontWeight: '800', fontFamily: getSystemFont('bold'), textTransform: 'uppercase', letterSpacing: 0.5 },
   grid: { flexDirection: 'row', gap: 16, height: 180 },
   tallCardWrap: { flex: 1.2 },
   tallCard: { flex: 1, backgroundColor: CORAL, borderRadius: 28, padding: 20, justifyContent: 'space-between', shadowColor: CORAL, shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.25, shadowRadius: 16, elevation: 8 },
   iconWrapPrimary: { width: 56, height: 56, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' },
-  labelPrimary: { color: '#FFF', fontSize: 18, fontWeight: '800', fontFamily: SANS, letterSpacing: -0.5, marginBottom: 4 },
-  subPrimary: { color: 'rgba(255,255,255,0.8)', fontSize: 12, fontFamily: SANS, fontWeight: '500' },
+  labelPrimary: { color: '#FFF', fontSize: 18, fontWeight: '800', fontFamily: getSystemFont('bold'), letterSpacing: -0.5, marginBottom: 4 },
+  subPrimary: { color: 'rgba(255,255,255,0.8)', fontSize: 12, fontFamily: getSystemFont('medium'), fontWeight: '500' },
   stackedCol: { flex: 1, gap: 16 },
   smallCardWrap: { flex: 1 },
   smallCard: { flex: 1, backgroundColor: SURFACE, borderRadius: 24, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 12, shadowColor: DARK, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.05, shadowRadius: 12, elevation: 3 },
   iconWrapSecondary: { width: 40, height: 40, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  labelSecondary: { color: DARK, fontSize: 15, fontWeight: '700', fontFamily: SANS, letterSpacing: -0.3 },
+  labelSecondary: { color: DARK, fontSize: 15, fontWeight: '700', fontFamily: getSystemFont('bold'), letterSpacing: -0.3 },
 });
 
 // ─────────────────────────────────────────────
@@ -283,10 +286,10 @@ const promo = StyleSheet.create({
   bgDark: { backgroundColor: DARK, borderRadius: 28, padding: 24, flexDirection: 'row', alignItems: 'center', overflow: 'hidden' },
   bgIcon: { position: 'absolute', right: -20, bottom: -30, transform: [{ rotate: '15deg' }] },
   content: { flex: 1, zIndex: 2 },
-  eyebrow: { color: CORAL, fontSize: 10, fontFamily: SANS, fontWeight: '800', letterSpacing: 1.5, marginBottom: 8 },
-  title: { color: '#FFF', fontSize: 18, fontWeight: '700', fontFamily: SERIF, letterSpacing: -0.5, lineHeight: 24, marginBottom: 16 },
+  eyebrow: { color: CORAL, fontSize: 10, fontFamily: getSystemFont('bold'), fontWeight: '800', letterSpacing: 1.5, marginBottom: 8 },
+  title: { color: '#FFF', fontSize: 18, fontWeight: '700', fontFamily: getSystemFont('medium'), letterSpacing: -0.5, lineHeight: 24, marginBottom: 16 },
   btn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#FFF', alignSelf: 'flex-start', paddingVertical: 8, paddingHorizontal: 14, borderRadius: 12 },
-  btnText: { color: DARK, fontSize: 12, fontWeight: '800', fontFamily: SANS },
+  btnText: { color: DARK, fontSize: 12, fontWeight: '800', fontFamily: getSystemFont('bold') },
   graphic: { width: 64, height: 64, borderRadius: 20, backgroundColor: 'rgba(242,118,73,0.1)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(242,118,73,0.2)' },
 });
 
@@ -342,10 +345,10 @@ const tx = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 16, padding: 14, marginBottom: 8, gap: 12, shadowColor: DARK, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.055, shadowRadius: 8, elevation: 2 },
   iconBadge: { width: 44, height: 44, borderRadius: 13, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   info: { flex: 1 },
-  label: { color: DARK, fontSize: 14, fontWeight: '600', fontFamily: SANS, letterSpacing: 0.1, marginBottom: 3 },
+  label: { color: DARK, fontSize: 14, fontWeight: '600', fontFamily: getSystemFont('medium'), letterSpacing: 0.1, marginBottom: 3 },
   sub: { color: '#9CA3AF', fontSize: 11, fontFamily: SANS },
   right: { alignItems: 'flex-end', gap: 4 },
-  amount: { fontSize: 14, fontWeight: '700', fontFamily: SANS, letterSpacing: 0.1 },
+  amount: { fontSize: 14, fontWeight: '700', fontFamily: getSystemFont('bold'), letterSpacing: 0.1 },
 });
 
 // ─────────────────────────────────────────────
@@ -353,7 +356,23 @@ const tx = StyleSheet.create({
 // ─────────────────────────────────────────────
 export function HomeScreen() {
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
+  const unreadNotifications = useNotificationStore(selectUnreadCount);
+  const user = useAppStore(state => state.user);
+  const [menuVisible, setMenuVisible] = React.useState(false);
+  const displayName = user?.name || 'Adom Isaac';
+  const displayEmail = user?.email || 'adom@araka.app';
+
+  const openNotifications = React.useCallback(() => {
+    const parentNavigation = navigation.getParent();
+
+    if (parentNavigation) {
+      parentNavigation.navigate('Notifications');
+      return;
+    }
+
+    navigation.navigate('Notifications');
+  }, [navigation]);
   
   // Hero animations
   const heroFade = React.useRef(new Animated.Value(0)).current;
@@ -378,16 +397,23 @@ export function HomeScreen() {
           <View style={s.ringInner} />
           
           <Animated.View style={[s.topBar, { opacity: heroFade, transform: [{ translateY: heroY }] }]}>
-            <View style={s.wordRow}>
-              <View style={s.wordDot} />
-              <Text style={s.wordmark}>ARAKA</Text>
-            </View>
+            <Pressable hitSlop={10} onPress={() => setMenuVisible(true)}>
+              <Ionicons name="menu" size={28} color="#FFFFFF" />
+            </Pressable>
+            <Pressable hitSlop={10} onPress={openNotifications}>
+              <Ionicons name="notifications-outline" size={24} color="#FFFFFF" />
+              {unreadNotifications > 0 && (
+                <View style={s.notificationDot}>
+                  <Text style={s.notificationCount}>{unreadNotifications}</Text>
+                </View>
+              )}
+            </Pressable>
           </Animated.View>
 
           <Animated.View style={{ opacity: heroFade, transform: [{ translateY: heroY }] }}>
-            <Text style={s.greetSub}>Welcome</Text>
-            <Text style={s.greetName}>Adom.</Text>
-            <View style={s.greetRule} />
+            <Text style={s.greetSub}>Good morning</Text>
+            <Text style={s.greetName}>{displayName}</Text>
+            {/* <View style={s.greetRule} /> */}
           </Animated.View>
         </View>
 
@@ -417,30 +443,35 @@ export function HomeScreen() {
 
         </View>
       </ScrollView>
+      <BurgerMenu
+        visible={menuVisible}
+        onClose={() => setMenuVisible(false)}
+        name={displayName}
+        email={displayEmail}
+      />
     </View>
   );
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: SLATE },
+  root: { flex: 1, backgroundColor: CORAL },
   scroll: { flex: 1 },
 
-  hero: { backgroundColor: SLATE, paddingHorizontal: 24, paddingBottom: 36 },
-  ringOuter: { position: 'absolute', top: -28, right: -48, width: 190, height: 190, borderRadius: 95, borderWidth: 32, borderColor: 'rgba(242,118,73,0.10)' },
-  ringInner: { position: 'absolute', top: 22, right: 12, width: 96, height: 96, borderRadius: 48, borderWidth: 1.5, borderColor: 'rgba(242,118,73,0.22)' },
+  hero: { backgroundColor: CORAL, paddingHorizontal: 24, paddingBottom: 36 },
+  ringOuter: { position: 'absolute', top: -28, right: -48, width: 190, height: 190, borderRadius: 95, borderWidth: 32, borderColor: 'rgba(61,74,92,0.15)' },
+  ringInner: { position: 'absolute', top: 22, right: 12, width: 96, height: 96, borderRadius: 48, borderWidth: 1.5, borderColor: 'rgba(61,74,92,0.3)' },
   topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28 },
-  wordRow: { flexDirection: 'row', alignItems: 'center', gap: 7 },
-  wordDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: CORAL },
-  wordmark: { color: '#FFFFFF', fontSize: 14, fontWeight: '800', letterSpacing: 4, fontFamily: SANS },
+  notificationDot: { position: 'absolute', right: -7, top: -7, minWidth: 18, height: 18, borderRadius: 9, paddingHorizontal: 4, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: DARK },
+  notificationCount: { color: DARK, fontSize: 10, fontWeight: '800', fontFamily: getSystemFont('bold'), lineHeight: 12 },
   
   greetSub: { color: 'rgba(255,255,255,0.42)', fontSize: 14, fontFamily: SANS, letterSpacing: 0.4, marginBottom: 4 },
-  greetName: { color: '#FFFFFF', fontSize: 40, fontWeight: '700', fontFamily: SERIF, letterSpacing: -1, lineHeight: 44 },
-  greetRule: { width: 36, height: 3, backgroundColor: CORAL, borderRadius: 2, marginTop: 12 },
+  greetName: { color: '#FFFFFF', fontSize: 32, fontWeight: '700', fontFamily: DISPLAY, letterSpacing: -1, lineHeight: 44 },
+  greetRule: { width: 36, height: 3, backgroundColor: DARK, borderRadius: 2, marginTop: 12 },
 
-  bodyCanvas: { backgroundColor: OFF_SURFACE, borderTopLeftRadius: 36, borderTopRightRadius: 36, flex: 1, paddingTop: 32, paddingBottom: 60 },
+  bodyCanvas: { backgroundColor: SURFACE, borderTopLeftRadius: 36, borderTopRightRadius: 36, flex: 1, paddingTop: 32, paddingBottom: 60 },
 
   txnSection: { paddingHorizontal: 24 },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 24 },
-  sectionTitle: { color: DARK, fontSize: 18, fontWeight: '800', fontFamily: SANS, letterSpacing: -0.5 },
-  sectionCta: { color: CORAL, fontSize: 13, fontWeight: '800', fontFamily: SANS, textTransform: 'uppercase', letterSpacing: 0.5 },
+  sectionTitle: { color: DARK, fontSize: 18, fontWeight: '800', fontFamily: getSystemFont('bold'), letterSpacing: -0.5 },
+  sectionCta: { color: CORAL, fontSize: 13, fontWeight: '800', fontFamily: getSystemFont('bold'), textTransform: 'uppercase', letterSpacing: 0.5 },
 });

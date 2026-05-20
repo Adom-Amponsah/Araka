@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {Pressable, StyleSheet, Text, View} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
+import {getSystemFont} from '@styles/typography';
 import {AirtimeTopupFlow} from '../flows/AirtimeTopupFlow';
 import {TransferFlow} from '../flows/TransferFlow';
 import {useServiceSessionStore} from '../store/serviceSessionStore';
@@ -62,11 +63,13 @@ const styles = StyleSheet.create({
     color: '#1A2535',
     fontSize: 22,
     fontWeight: '800',
+    fontFamily: getSystemFont('bold'),
     textAlign: 'center',
   },
   body: {
     color: '#6B7280',
     fontSize: 14,
+    fontFamily: getSystemFont(),
     textAlign: 'center',
   },
   button: {
@@ -79,6 +82,6 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#FFFFFF',
     fontWeight: '800',
+    fontFamily: getSystemFont('bold'),
   },
 });
-

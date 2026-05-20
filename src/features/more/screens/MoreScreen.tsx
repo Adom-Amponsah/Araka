@@ -2,6 +2,7 @@ import * as React from 'react';
 import {View, Text, Pressable, StyleSheet} from 'react-native';
 import {useAppStore} from '@shared/store/appStore';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import {getSystemFont} from '@styles/typography';
 
 const CORAL = '#F27649';
 const SLATE = '#3D4A5C';
@@ -38,6 +39,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '700',
+    fontFamily: getSystemFont('medium'),
     color: SLATE,
   },
   previewButton: {
@@ -55,6 +57,7 @@ const styles = StyleSheet.create({
     color: SLATE,
     fontSize: 16,
     fontWeight: '600',
+    fontFamily: getSystemFont('medium'),
   },
   logoutButton: {
     flexDirection: 'row',
@@ -74,5 +77,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
+    fontFamily: getSystemFont('medium'),
   },
 });

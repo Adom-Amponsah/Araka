@@ -3,6 +3,7 @@ import {View, TextInput, Pressable, KeyboardAvoidingView, Platform, StyleSheet, 
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useAppStore} from '@shared/store/appStore';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import {getSystemFont} from '@styles/typography';
 
 export function OTPVerificationScreen() {
   const verifyOtp = useAppStore((state) => state.verifyOtp);
@@ -82,15 +83,15 @@ const styles = StyleSheet.create({
   container: {flex: 1, backgroundColor: '#FFFFFF'},
   backButton: {padding: 16},
   content: {flex: 1, paddingHorizontal: 24, paddingTop: 32},
-  title: {color: '#111827', fontSize: 30, fontWeight: 'bold', marginBottom: 12},
-  subtitle: {color: '#6B7280', fontSize: 16, marginBottom: 48},
+  title: {color: '#111827', fontSize: 30, fontWeight: 'bold', fontFamily: getSystemFont('bold'), marginBottom: 12},
+  subtitle: {color: '#6B7280', fontSize: 16, fontFamily: getSystemFont(), marginBottom: 48},
   otpContainer: {flexDirection: 'row', justifyContent: 'space-between', marginBottom: 32},
   otpBox: {width: 60, height: 60, borderWidth: 2, borderColor: '#E5E7EB', borderRadius: 12, backgroundColor: '#F9FAFB', alignItems: 'center', justifyContent: 'center'},
-  otpInput: {fontSize: 24, fontWeight: 'bold', textAlign: 'center', color: '#111827', width: '100%'},
+  otpInput: {fontSize: 24, fontWeight: 'bold', fontFamily: getSystemFont('bold'), textAlign: 'center', color: '#111827', width: '100%'},
   continueButton: {backgroundColor: '#F27649', borderRadius: 12, paddingVertical: 16, marginBottom: 24, shadowColor: '#D97757', shadowOffset: {width: 0, height: 4}, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4},
   continueButtonDisabled: {backgroundColor: '#D1D5DB', shadowOpacity: 0},
-  continueButtonText: {color: '#FFFFFF', fontWeight: 'bold', textAlign: 'center', fontSize: 18},
+  continueButtonText: {color: '#FFFFFF', fontWeight: 'bold', fontFamily: getSystemFont('bold'), textAlign: 'center', fontSize: 18},
   resendButton: {alignItems: 'center'},
-  resendText: {color: '#6B7280', fontSize: 14},
-  resendLink: {color: '#F27649', fontWeight: '600'},
+  resendText: {color: '#6B7280', fontSize: 14, fontFamily: getSystemFont()},
+  resendLink: {color: '#F27649', fontWeight: '600', fontFamily: getSystemFont('medium')},
 });

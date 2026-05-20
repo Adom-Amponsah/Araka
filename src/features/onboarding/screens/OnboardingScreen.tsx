@@ -10,10 +10,10 @@ import {
   ViewToken,
   Animated,
   Easing,
-  Platform,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useAppStore} from '@shared/store/appStore';
+import {getSystemFont} from '@styles/typography';
 
 const {width, height} = Dimensions.get('window');
 
@@ -319,13 +319,13 @@ const slideStyles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 3,
-    fontFamily: Platform.OS === 'ios' ? 'Helvetica Neue' : 'sans-serif',
+    fontFamily: getSystemFont(),
   },
   title: {
     color: '#FFFFFF',
     fontSize: 56,
     fontWeight: '700',
-    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+    fontFamily: getSystemFont('medium'),
     lineHeight: 60,
     letterSpacing: -1.5,
     marginBottom: 10,
@@ -340,7 +340,7 @@ const slideStyles = StyleSheet.create({
     color: 'rgba(255,255,255,0.65)',
     fontSize: 15,
     lineHeight: 24,
-    fontFamily: Platform.OS === 'ios' ? 'Helvetica Neue' : 'sans-serif',
+    fontFamily: getSystemFont(),
     letterSpacing: 0.2,
     maxWidth: width * 0.75,
   },
@@ -563,7 +563,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '800',
     letterSpacing: 4,
-    fontFamily: Platform.OS === 'ios' ? 'Helvetica Neue' : 'sans-serif',
+    fontFamily: getSystemFont(),
   },
   skipPill: {
     borderWidth: 1,
@@ -575,7 +575,7 @@ const styles = StyleSheet.create({
   skipText: {
     color: 'rgba(255,255,255,0.7)',
     fontSize: 13,
-    fontFamily: Platform.OS === 'ios' ? 'Helvetica Neue' : 'sans-serif',
+    fontFamily: getSystemFont(),
     letterSpacing: 0.3,
   },
 
@@ -615,7 +615,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     letterSpacing: 0.5,
-    fontFamily: Platform.OS === 'ios' ? 'Helvetica Neue' : 'sans-serif',
+    fontFamily: getSystemFont(),
   },
   // Hand-drawn arrow components
   arrowIcon: {

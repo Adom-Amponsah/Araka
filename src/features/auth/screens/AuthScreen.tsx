@@ -3,6 +3,7 @@ import {View, Image, Dimensions, Pressable, Platform, StyleSheet, Text} from 're
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import {useAppStore} from '@shared/store/appStore';
+import {getSystemFont} from '@styles/typography';
 
 const {width} = Dimensions.get('window');
 
@@ -135,6 +136,7 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.7)',
     textAlign: 'center',
     fontSize: 14,
+    fontFamily: getSystemFont(),
     marginTop: 12,
     maxWidth: 280,
     lineHeight: 20,
@@ -157,6 +159,7 @@ const styles = StyleSheet.create({
   primaryButtonText: {
     color: '#F27649',
     fontWeight: 'bold',
+    fontFamily: getSystemFont('bold'),
     textAlign: 'center',
     fontSize: 18,
   },
@@ -175,5 +178,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '500',
+    fontFamily: getSystemFont('medium'),
   },
 });

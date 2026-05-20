@@ -6,7 +6,6 @@ import {
   Pressable,
   TextInput,
   StyleSheet,
-  Platform,
   Animated,
   Easing,
   Dimensions,
@@ -16,6 +15,8 @@ import {
 import {useNavigation} from '@react-navigation/native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import {getSystemFont} from '@styles/typography';
+import {selectUnreadCount, useNotificationStore} from '@features/notifications/store/notificationStore';
 import {SERVICE_CATEGORIES, ServiceProviderConfig} from '../registry/serviceRegistry';
 import {useAirtimeTopupFlowStore} from '../store/airtimeTopupFlowStore';
 import {useServiceSessionStore} from '../store/serviceSessionStore';
@@ -27,8 +28,9 @@ const CORAL = '#F27649';
 const SLATE = '#3D4A5C';
 const DARK  = '#1A2535';
 const OFF   = '#F4F6FA';
-const SERIF = Platform.OS === 'ios' ? 'Georgia' : 'serif';
-const SANS  = Platform.OS === 'ios' ? 'Helvetica Neue' : 'sans-serif';
+const DISPLAY = getSystemFont('condensed');
+const SERIF = getSystemFont('medium');
+const SANS = getSystemFont();
 
 // ─────────────────────────────────────────────
 // DATA — categories → providers
@@ -107,15 +109,15 @@ const CATEGORIES: Category[] = [
       {id:'t4', name:'StarTimes', sub:'Digital TV',        icon:'tv-outline', iconBg:'#FEE8DF', iconColor:'#E53E3E', action:'Renew'},
     ],
   },
-  {
-    id: 'water',
-    label: 'Water',
-    icon: 'water-outline',
-    providers: [
-      {id:'w1', name:'LAWMA',     sub:'Lagos Water',       icon:'water-outline', iconBg:'#E8F4FD', iconColor:'#2980B9', action:'Pay'},
-      {id:'w2', name:'RUWASA',    sub:'Rural Water',       icon:'water-outline', iconBg:'#E8F8FF', iconColor:'#0EA5E9', action:'Pay'},
-    ],
-  },
+  // {
+  //   id: 'water',
+  //   label: 'Water',
+  //   icon: 'water-outline',
+  //   providers: [
+  //     {id:'w1', name:'LAWMA',     sub:'Lagos Water',       icon:'water-outline', iconBg:'#E8F4FD', iconColor:'#2980B9', action:'Pay'},
+  //     {id:'w2', name:'RUWASA',    sub:'Rural Water',       icon:'water-outline', iconBg:'#E8F8FF', iconColor:'#0EA5E9', action:'Pay'},
+  //   ],
+  // },
   {
     id: 'internet',
     label: 'Internet',
@@ -383,6 +385,17 @@ const CARD_RADIUS = 36;
 export function ServicesScreen() {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
+  const unreadNotifications = useNotificationStore(selectUnreadCount);
+
+  const openNotifications = React.useCallback(() => {
+    const parentNavigation = navigation.getParent();
+    if (parentNavigation) {
+      parentNavigation.navigate('Notifications');
+      return;
+    }
+    navigation.navigate('Notifications');
+  }, [navigation]);
+
   const [activeId, setActiveId] = React.useState(CATEGORIES[0].id);
   const [animKey, setAnimKey]   = React.useState(CATEGORIES[0].id);
   const [contentHeight, setContentHeight] = React.useState(0);
@@ -479,16 +492,23 @@ export function ServicesScreen() {
           <View style={s.ringInner} />
 
           <Animated.View style={[s.topBar, {opacity: heroFade, transform: [{translateY: heroY}]}]}>
-            <View style={s.wordRow}>
-              <View style={s.wordDot} />
-              <Text style={s.wordmark}>ARAKA</Text>
-            </View>
+            <Pressable hitSlop={10}>
+              <Ionicons name="menu" size={28} color="#FFFFFF" />
+            </Pressable>
+            <Pressable hitSlop={10} onPress={openNotifications}>
+              <Ionicons name="notifications-outline" size={24} color="#FFFFFF" />
+              {unreadNotifications > 0 && (
+                <View style={s.notificationDot}>
+                  <Text style={s.notificationCount}>{unreadNotifications}</Text>
+                </View>
+              )}
+            </Pressable>
           </Animated.View>
 
           <Animated.View style={{opacity: heroFade, transform: [{translateY: heroY}]}}>
             <Text style={s.greetSub}>What would you like to</Text>
             <Text style={s.greetName}>Pay for?</Text>
-            <View style={s.greetRule} />
+            {/* <View style={s.greetRule} /> */}
           </Animated.View>
         </View>
 
@@ -641,35 +661,43 @@ function UnavailableServiceSheet({
 
 // ─────────────────────────────────────────────
 const s = StyleSheet.create({
-  root:  {flex: 1, backgroundColor: SLATE},
+  root:  {flex: 1, backgroundColor: CORAL},
   scroll:{flex: 1},
 
   hero: {
-    backgroundColor: SLATE,
+    backgroundColor: CORAL,
     paddingHorizontal: 24,
     paddingBottom: 64,
   },
   ringOuter: {
     position: 'absolute', top: -28, right: -48,
     width: 190, height: 190, borderRadius: 95,
-    borderWidth: 32, borderColor: 'rgba(242,118,73,0.10)',
+    borderWidth: 32, borderColor: 'rgba(61,74,92,0.15)',
   },
   ringInner: {
     position: 'absolute', top: 22, right: 12,
     width: 96, height: 96, borderRadius: 48,
-    borderWidth: 1.5, borderColor: 'rgba(242,118,73,0.22)',
+    borderWidth: 1.5, borderColor: 'rgba(61,74,92,0.3)',
   },
   topBar: {
     flexDirection: 'row', alignItems: 'center',
     justifyContent: 'space-between', marginBottom: 32,
   },
-  wordRow: {flexDirection: 'row', alignItems: 'center', gap: 7},
-  wordDot: {width: 8, height: 8, borderRadius: 4, backgroundColor: CORAL},
-  wordmark:{color: '#FFFFFF', fontSize: 14, fontWeight: '800', letterSpacing: 4, fontFamily: SANS},
+  notificationDot: {
+    position: 'absolute', right: -7, top: -7,
+    minWidth: 18, height: 18, borderRadius: 9,
+    paddingHorizontal: 4, backgroundColor: '#FFFFFF',
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: 2, borderColor: DARK,
+  },
+  notificationCount: {
+    color: DARK, fontSize: 10, fontWeight: '800',
+    fontFamily: getSystemFont('bold'), lineHeight: 12,
+  },
 
   greetSub:  {color: 'rgba(255,255,255,0.42)', fontSize: 14, fontFamily: SANS, letterSpacing: 0.4, marginBottom: 4},
-  greetName: {color: '#FFFFFF', fontSize: 40, fontWeight: '700', fontFamily: SERIF, letterSpacing: -1, lineHeight: 44},
-  greetRule: {width: 36, height: 3, backgroundColor: CORAL, borderRadius: 2, marginTop: 12},
+  greetName: {color: '#FFFFFF', fontSize: 32, fontWeight: '700', fontFamily: DISPLAY, letterSpacing: -1, lineHeight: 44},
+  greetRule: {width: 36, height: 3, backgroundColor: DARK, borderRadius: 2, marginTop: 12},
 
   curveShadow: {
     position: 'absolute', bottom: 0, left: 0, right: 0, height: 120,
@@ -679,7 +707,7 @@ const s = StyleSheet.create({
     shadowOpacity: 0.20, shadowRadius: 28, elevation: 22,
   },
   card: {
-    backgroundColor: OFF,
+    backgroundColor: '#FFFFFF',
     borderTopLeftRadius: CARD_RADIUS,
     borderTopRightRadius: CARD_RADIUS,
     marginTop: -CARD_RADIUS,

@@ -16,6 +16,7 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useAppStore} from '@shared/store/appStore';
 import {useForm, Controller} from 'react-hook-form';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import {getSystemFont} from '@styles/typography';
 
 interface SignUpFormData {
   fullName: string;
@@ -133,7 +134,7 @@ const floatStyles = StyleSheet.create({
     position: 'absolute',
     left: 56,
     top: 6,
-    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+    fontFamily: getSystemFont('medium'),
     letterSpacing: 0.2,
   },
   input: {
@@ -141,7 +142,7 @@ const floatStyles = StyleSheet.create({
     fontSize: 15,
     color: '#1A2535',
     paddingTop: 20,
-    fontFamily: Platform.OS === 'ios' ? 'Helvetica Neue' : 'sans-serif',
+    fontFamily: getSystemFont(),
     letterSpacing: 0.3,
   },
   errorRow: {
@@ -154,7 +155,7 @@ const floatStyles = StyleSheet.create({
   errorText: {
     color: '#EF4444',
     fontSize: 12,
-    fontFamily: Platform.OS === 'ios' ? 'Helvetica Neue' : 'sans-serif',
+    fontFamily: getSystemFont(),
   },
 });
 
@@ -490,7 +491,7 @@ const styles = StyleSheet.create({
   backText: {
     color: 'rgba(255,255,255,0.6)',
     fontSize: 14,
-    fontFamily: Platform.OS === 'ios' ? 'Helvetica Neue' : 'sans-serif',
+    fontFamily: getSystemFont(),
   },
 
   // Step indicator row
@@ -505,23 +506,23 @@ const styles = StyleSheet.create({
     fontSize: 11,
     letterSpacing: 2,
     textTransform: 'uppercase',
-    fontFamily: Platform.OS === 'ios' ? 'Helvetica Neue' : 'sans-serif',
+    fontFamily: getSystemFont(),
     fontWeight: '600',
   },
 
   headline: {
     color: '#FFFFFF',
-    fontSize: 40,
+    fontSize: 32,
     fontWeight: '700',
-    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
-    lineHeight: 46,
-    letterSpacing: -0.5,
+    fontFamily: getSystemFont('medium'),
+    lineHeight: 36,
+    letterSpacing: 0.1,
     marginBottom: 10,
   },
   subline: {
     color: 'rgba(255,255,255,0.4)',
     fontSize: 14,
-    fontFamily: Platform.OS === 'ios' ? 'Helvetica Neue' : 'sans-serif',
+    fontFamily: getSystemFont(),
     letterSpacing: 0.3,
   },
 
@@ -571,7 +572,7 @@ const styles = StyleSheet.create({
     color: '#1A2535',
     fontSize: 24,
     fontWeight: '700',
-    fontFamily: Platform.OS === 'ios' ? 'Georgia' : 'serif',
+    fontFamily: getSystemFont('medium'),
     letterSpacing: -0.3,
     marginBottom: 24,
   },
@@ -609,7 +610,7 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     fontSize: 13,
     lineHeight: 20,
-    fontFamily: Platform.OS === 'ios' ? 'Helvetica Neue' : 'sans-serif',
+    fontFamily: getSystemFont(),
   },
   termsLink: {
     color: CORAL,
@@ -625,7 +626,7 @@ const styles = StyleSheet.create({
   termsErrorText: {
     color: '#EF4444',
     fontSize: 12,
-    fontFamily: Platform.OS === 'ios' ? 'Helvetica Neue' : 'sans-serif',
+    fontFamily: getSystemFont(),
   },
 
   // ── CTA ──
@@ -659,7 +660,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 17,
     fontWeight: '700',
-    fontFamily: Platform.OS === 'ios' ? 'Helvetica Neue' : 'sans-serif',
+    fontFamily: getSystemFont(),
     letterSpacing: 0.5,
     flex: 1,
     textAlign: 'center',
@@ -690,7 +691,7 @@ const styles = StyleSheet.create({
   divText: {
     color: '#9CA3AF',
     fontSize: 12,
-    fontFamily: Platform.OS === 'ios' ? 'Helvetica Neue' : 'sans-serif',
+    fontFamily: getSystemFont(),
     letterSpacing: 0.3,
   },
 
@@ -706,7 +707,7 @@ const styles = StyleSheet.create({
     color: '#3D4A5C',
     fontSize: 15,
     fontWeight: '600',
-    fontFamily: Platform.OS === 'ios' ? 'Helvetica Neue' : 'sans-serif',
+    fontFamily: getSystemFont(),
     letterSpacing: 0.3,
   },
 });
