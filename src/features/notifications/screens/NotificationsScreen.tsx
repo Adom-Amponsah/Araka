@@ -452,15 +452,15 @@ const row = StyleSheet.create({
   card: {
     flexDirection: 'row',
     backgroundColor: '#FFFFFF',
-    borderRadius: 22,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: 'rgba(232,237,242,0.85)',
     padding: 14,
     gap: 12,
     shadowColor: DARK,
-    shadowOffset: {width: 0, height: 6},
+    shadowOffset: {width: 0, height: 3},
     shadowOpacity: 0.055,
-    shadowRadius: 14,
+    shadowRadius: 8,
     elevation: 2,
   },
   iconWrap: {
@@ -519,9 +519,9 @@ const row = StyleSheet.create({
   },
   title: {
     color: DARK,
-    fontSize: 15,
-    fontWeight: '800',
-    fontFamily: getSystemFont('bold'),
+    fontSize: 14,
+    fontWeight: '500',
+    fontFamily: getSystemFont('medium'),
     letterSpacing: -0.2,
   },
   footer: {
@@ -857,16 +857,16 @@ const s = StyleSheet.create({
   },
   sectionTitle: {
     color: DARK,
-    fontSize: 18,
-    fontWeight: '800',
-    fontFamily: getSystemFont('bold'),
+    fontSize: 16,
+    fontWeight: '500',
+    fontFamily: getSystemFont('medium'),
     letterSpacing: -0.4,
   },
   sectionMeta: {
     color: '#8A94A6',
     fontSize: 12,
-    fontWeight: '700',
-    fontFamily: getSystemFont('bold'),
+    fontWeight: '500',
+    fontFamily: getSystemFont('medium'),
   },
   list: {
     paddingHorizontal: 24,
