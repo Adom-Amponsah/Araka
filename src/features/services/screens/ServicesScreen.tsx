@@ -17,6 +17,8 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {getSystemFont} from '@styles/typography';
 import {selectUnreadCount, useNotificationStore} from '@features/notifications/store/notificationStore';
+import {BurgerMenu} from '@features/home/components/BurgerMenu';
+import {useAppStore} from '@shared/store/appStore';
 import {SERVICE_CATEGORIES, ServiceProviderConfig} from '../registry/serviceRegistry';
 import {useAirtimeTopupFlowStore} from '../store/airtimeTopupFlowStore';
 import {useServiceSessionStore} from '../store/serviceSessionStore';
@@ -386,6 +388,10 @@ export function ServicesScreen() {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const unreadNotifications = useNotificationStore(selectUnreadCount);
+  const user = useAppStore(state => state.user);
+  const [menuVisible, setMenuVisible] = React.useState(false);
+  const displayName = user?.name || 'Adom Isaac';
+  const displayEmail = user?.email || 'adom@araka.app';
 
   const openNotifications = React.useCallback(() => {
     const parentNavigation = navigation.getParent();
@@ -492,7 +498,7 @@ export function ServicesScreen() {
           <View style={s.ringInner} />
 
           <Animated.View style={[s.topBar, {opacity: heroFade, transform: [{translateY: heroY}]}]}>
-            <Pressable hitSlop={10}>
+            <Pressable hitSlop={10} onPress={() => setMenuVisible(true)}>
               <Ionicons name="menu" size={28} color="#FFFFFF" />
             </Pressable>
             <Pressable hitSlop={10} onPress={openNotifications}>
@@ -578,6 +584,12 @@ export function ServicesScreen() {
       <UnavailableServiceSheet
         provider={unavailableProvider}
         onClose={() => setUnavailableProvider(null)}
+      />
+      <BurgerMenu
+        visible={menuVisible}
+        onClose={() => setMenuVisible(false)}
+        name={displayName}
+        email={displayEmail}
       />
     </View>
   );
