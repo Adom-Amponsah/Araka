@@ -373,6 +373,10 @@ export function HomeScreen() {
 
     navigation.navigate('Notifications');
   }, [navigation]);
+
+  const openTransactions = React.useCallback(() => {
+    navigation.navigate('Transactions');
+  }, [navigation]);
   
   // Hero animations
   const heroFade = React.useRef(new Animated.Value(0)).current;
@@ -433,7 +437,9 @@ export function HomeScreen() {
           <View style={s.txnSection}>
             <Animated.View style={[s.sectionHeader, txnHeaderAnim]}>
               <Text style={s.sectionTitle}>Recent Activity</Text>
-              <Pressable hitSlop={10} onPress={() => navigation.navigate('Transactions' as never)}><Text style={s.sectionCta}>View all</Text></Pressable>
+              <Pressable hitSlop={10} onPress={openTransactions}>
+                <Text style={s.sectionCta}>View all</Text>
+              </Pressable>
             </Animated.View>
             
             {TRANSACTIONS.map((t, i) => (

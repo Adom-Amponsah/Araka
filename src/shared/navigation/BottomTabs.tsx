@@ -3,10 +3,7 @@ import {
   View,
   Pressable,
   StyleSheet,
-  Platform,
   Animated,
-  Easing,
-  Dimensions,
 } from 'react-native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -14,26 +11,23 @@ import {BottomTabBarProps} from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import {HomeScreen}         from '@features/home/screens/HomeScreen';
+import {WalletScreen}       from '@features/wallet/screens/WalletScreen';
 import {ServicesScreen}     from '@features/services/screens/ServicesScreen';
-import {PayScreen}          from '@features/pay/screens/PayScreen';
-import {TransactionsScreen} from '@/features/transactions/screens/TransactionsScreen';
-import {MoreScreen}         from '@features/more/screens/MoreScreen';
-
-const {width} = Dimensions.get('window');
+import {TransactionsScreen} from '@features/transactions/screens/TransactionsScreen';
+import {VirtualCardsScreen} from '@features/cards/screens/VirtualCardsScreen';
 
 const CORAL = '#F27649';
-const SLATE = '#3D4A5C';
 const DARK  = '#1A2535';
 
 // ─────────────────────────────────────────────
 // Tab config
 // ─────────────────────────────────────────────
 const TABS = [
-  {name: 'Home',         icon: 'home-outline',         iconActive: 'home'},
-  {name: 'Services',     icon: 'albums-outline',        iconActive: 'albums'},
-  {name: 'Pay',          icon: 'arrow-up-outline',      iconActive: 'arrow-up', isFab: true},
-  {name: 'Transactions', icon: 'bar-chart-outline',     iconActive: 'bar-chart'},
-  {name: 'More',         icon: 'ellipsis-horizontal-outline', iconActive: 'ellipsis-horizontal'},
+  {name: 'Home', icon: 'home-outline', iconActive: 'home'},
+  {name: 'Services', icon: 'albums-outline', iconActive: 'albums'},
+  {name: 'Wallet', icon: 'wallet-outline', iconActive: 'wallet', isFab: true},
+  {name: 'Transactions', icon: 'time-outline', iconActive: 'time'},
+  {name: 'VirtualCards', icon: 'card-outline', iconActive: 'card'},
 ];
 
 // ─────────────────────────────────────────────
@@ -190,7 +184,7 @@ function FabButton({onPress, isActive}: {onPress: () => void; isActive: boolean}
       onPressOut={pressOut}
       style={fab.touch}
       accessibilityRole="button"
-      accessibilityLabel="Pay">
+      accessibilityLabel="Wallet">
       <Animated.View
         style={[
           fab.btn,
@@ -201,10 +195,7 @@ function FabButton({onPress, isActive}: {onPress: () => void; isActive: boolean}
         {/* The button itself */}
         <View style={fab.inner}>
           {/* Diagonal arrow — same language as onboarding CTA */}
-          <View style={fab.arrowWrap}>
-            <View style={fab.arrowShaft} />
-            <View style={fab.arrowHead} />
-          </View>
+          <Ionicons name="wallet" size={23} color="#FFFFFF" />
         </View>
       </Animated.View>
     </Pressable>
@@ -282,7 +273,7 @@ const fab = StyleSheet.create({
 // ─────────────────────────────────────────────
 // Custom Tab Bar
 // ─────────────────────────────────────────────
-function CustomTabBar({state, descriptors, navigation}: BottomTabBarProps) {
+function CustomTabBar({state, navigation}: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
 
   return (
@@ -292,10 +283,6 @@ function CustomTabBar({state, descriptors, navigation}: BottomTabBarProps) {
 
       <View style={bar.row}>
         {state.routes.map((route, index) => {
-          if (route.name === 'Pay') {
-            return null;
-          }
-
           const tab = TABS[index];
           const isActive = state.index === index;
           const isFab = tab.isFab;
@@ -375,9 +362,9 @@ export function BottomTabs() {
       }}>
       <Tab.Screen name="Home"         component={HomeScreen} />
       <Tab.Screen name="Services"     component={ServicesScreen} />
-      <Tab.Screen name="Pay"          component={PayScreen} />
+      <Tab.Screen name="Wallet"       component={WalletScreen} />
       <Tab.Screen name="Transactions" component={TransactionsScreen} />
-      <Tab.Screen name="More"         component={MoreScreen} />
+      <Tab.Screen name="VirtualCards" component={VirtualCardsScreen} />
     </Tab.Navigator>
   );
 }
