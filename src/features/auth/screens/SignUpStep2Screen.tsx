@@ -11,6 +11,7 @@ import {
   Animated,
   Easing,
 } from 'react-native';
+import {useNavigation} from '@react-navigation/native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useAppStore} from '@shared/store/appStore';
 import {useForm, Controller} from 'react-hook-form';
@@ -244,6 +245,7 @@ const sd = StyleSheet.create({
 // MAIN SCREEN
 // ─────────────────────────────────────────────
 export function SignUpStep2Screen() {
+  const navigation = useNavigation();
   const startSignup = useAppStore((state) => state.startSignup);
   const insets    = useSafeAreaInsets();
 
@@ -285,6 +287,8 @@ export function SignUpStep2Screen() {
   const onSubmit = (data: SignUpStep2FormData) => {
     console.log('Profile data:', data);
     // TODO: Call API to complete profile
+    // Navigate to Login screen after successful signup
+    navigation.navigate('Login' as never);
   };
 
   return (

@@ -531,10 +531,10 @@ export function VirtualCardsScreen() {
               <Ionicons name="menu-outline" size={22} color="#FFFFFF" />
             </Pressable>
 
-            <View style={s.wordRow}>
+            {/* <View style={s.wordRow}>
               <View style={s.wordDot} />
               <Text style={s.wordmark}>ARAKA</Text>
-            </View>
+            </View> */}
 
             <Pressable hitSlop={10} onPress={openNotifications} style={s.iconBtn}>
               <Ionicons name="notifications-outline" size={20} color="#FFFFFF" />
@@ -548,8 +548,8 @@ export function VirtualCardsScreen() {
 
           {/* Hero copy */}
           <Animated.View style={[s.heroCopy, {opacity: heroFade, transform: [{translateY: heroY}]}]}>
-            <Text style={s.heroSub}>Your wallet</Text>
-            <Text style={s.heroTitle}>Cards.</Text>
+            <Text style={s.heroSub}>Virtual Cards</Text>
+            {/* <Text style={s.heroTitle}>Cards.</Text> */}
             <View style={s.heroRule} />
           </Animated.View>
         </View>
@@ -673,7 +673,7 @@ const s = StyleSheet.create({
   wordmark: {color: '#FFFFFF', fontSize: 13, fontWeight: '800', letterSpacing: 4, fontFamily: SANS},
 
   heroCopy: {gap: 6},
-  heroSub:  {color: 'rgba(255,255,255,0.42)', fontSize: 14, fontFamily: SANS, letterSpacing: 0.4},
+  heroSub:  {color: 'rgba(255,255,255,0.42)', fontSize: 14, fontFamily: SANS, letterSpacing: 0.4, marginBottom: 8},
   heroTitle:{color: '#FFFFFF', fontSize: 44, fontWeight: '700', fontFamily: SERIF, letterSpacing: -1, lineHeight: 48},
   heroRule: {width: 36, height: 3, backgroundColor: CORAL, borderRadius: 2, marginTop: 4},
 

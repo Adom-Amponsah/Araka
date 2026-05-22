@@ -241,19 +241,19 @@ function BentoGrid() {
 const bento = StyleSheet.create({
   container: { paddingHorizontal: 24, marginBottom: 32 },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 16 },
-  title: { color: DARK, fontSize: 18, fontWeight: '800', fontFamily: getSystemFont('bold'), letterSpacing: -0.5 },
-  seeAll: { color: CORAL, fontSize: 13, fontWeight: '800', fontFamily: getSystemFont('bold'), textTransform: 'uppercase', letterSpacing: 0.5 },
+  title: { color: DARK, fontSize: 18, fontWeight: '500', fontFamily: getSystemFont('medium'), letterSpacing: -0.5 },
+  seeAll: { color: CORAL, fontSize: 13, fontWeight: '500', fontFamily: getSystemFont('medium'), textTransform: 'uppercase', letterSpacing: 0.5 },
   grid: { flexDirection: 'row', gap: 16, height: 180 },
   tallCardWrap: { flex: 1.2 },
   tallCard: { flex: 1, backgroundColor: CORAL, borderRadius: 28, padding: 20, justifyContent: 'space-between', shadowColor: CORAL, shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.25, shadowRadius: 16, elevation: 8 },
   iconWrapPrimary: { width: 56, height: 56, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' },
-  labelPrimary: { color: '#FFF', fontSize: 18, fontWeight: '800', fontFamily: getSystemFont('bold'), letterSpacing: -0.5, marginBottom: 4 },
-  subPrimary: { color: 'rgba(255,255,255,0.8)', fontSize: 12, fontFamily: getSystemFont('medium'), fontWeight: '500' },
+  labelPrimary: { color: '#FFF', fontSize: 18, fontWeight: '500', fontFamily: getSystemFont('medium'), letterSpacing: -0.5, marginBottom: 4 },
+  subPrimary: { color: 'rgba(255,255,255,0.8)', fontSize: 12, fontFamily: getSystemFont('medium'), fontWeight: '400' },
   stackedCol: { flex: 1, gap: 16 },
   smallCardWrap: { flex: 1 },
   smallCard: { flex: 1, backgroundColor: SURFACE, borderRadius: 24, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 12, shadowColor: DARK, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.05, shadowRadius: 12, elevation: 3 },
   iconWrapSecondary: { width: 40, height: 40, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  labelSecondary: { color: DARK, fontSize: 15, fontWeight: '700', fontFamily: getSystemFont('bold'), letterSpacing: -0.3 },
+  labelSecondary: { color: DARK, fontSize: 15, fontWeight: '500', fontFamily: getSystemFont('medium'), letterSpacing: -0.3 },
 });
 
 // ─────────────────────────────────────────────
@@ -333,7 +333,7 @@ function TxnRow({ label, provider, amount, type, icon, iconBg, iconColor, index 
         </View>
         <View style={tx.right}>
           <Text style={[tx.amount, { color: isOut ? DARK : '#10B981' }]}>
-            {isOut ? '−' : '+'}GHS {amount.toFixed(2)}
+            {isOut ? '−' : '+'}USD {amount.toFixed(2)}
           </Text>
         </View>
       </Pressable>
@@ -478,6 +478,6 @@ const s = StyleSheet.create({
 
   txnSection: { paddingHorizontal: 24 },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 24 },
-  sectionTitle: { color: DARK, fontSize: 18, fontWeight: '800', fontFamily: getSystemFont('bold'), letterSpacing: -0.5 },
-  sectionCta: { color: CORAL, fontSize: 13, fontWeight: '800', fontFamily: getSystemFont('bold'), textTransform: 'uppercase', letterSpacing: 0.5 },
+  sectionTitle: { color: DARK, fontSize: 18, fontWeight: '500', fontFamily: getSystemFont('medium'), letterSpacing: -0.5 },
+  sectionCta: { color: CORAL, fontSize: 13, fontWeight: '500', fontFamily: getSystemFont('medium'), textTransform: 'uppercase', letterSpacing: 0.5 },
 });
