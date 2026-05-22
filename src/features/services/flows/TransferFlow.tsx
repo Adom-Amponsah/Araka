@@ -538,13 +538,11 @@ export function TransferFlow() {
           {store.step === 'details' && (
             <DetailsStep
               subscriberNumber={store.subscriberNumber}
-              smartCardNumber={store.smartCardNumber}
               phoneNumber={store.phoneNumber}
               amount={store.amount}
               error={store.error}
               currency={financials.currency}
               onSubscriberNumberChange={store.setSubscriberNumber}
-              onSmartCardNumberChange={store.setSmartCardNumber}
               onPhoneNumberChange={store.setPhoneNumber}
               onAmountChange={store.setAmount}
               onLowerFieldFocus={bringLowerFieldsIntoView}
@@ -555,7 +553,6 @@ export function TransferFlow() {
           {store.step === 'review' && (
             <ReviewStep
               subscriberNumber={store.subscriberNumber}
-              smartCardNumber={store.smartCardNumber}
               phoneNumber={store.phoneNumber}
               financials={financials}
               onEdit={store.editDetails}
@@ -621,36 +618,30 @@ export function TransferFlow() {
 
 function DetailsStep({
   subscriberNumber,
-  smartCardNumber,
   phoneNumber,
   amount,
   error,
   currency,
   onSubscriberNumberChange,
-  onSmartCardNumberChange,
   onPhoneNumberChange,
   onAmountChange,
   onLowerFieldFocus,
   onSubmit,
 }: {
   subscriberNumber: string;
-  smartCardNumber: string;
   phoneNumber: string;
   amount: string;
   error: string | null;
   currency: string;
   onSubscriberNumberChange: (value: string) => void;
-  onSmartCardNumberChange: (value: string) => void;
   onPhoneNumberChange: (value: string) => void;
   onAmountChange: (value: string) => void;
   onLowerFieldFocus: () => void;
   onSubmit: () => void;
 }) {
   const phoneVerified = phoneNumber.replace(/\D/g, '').length >= 9;
-  const smartCardReady = smartCardNumber.replace(/\D/g, '').length === 4;
   const canReview =
     subscriberNumber.trim().length > 0 &&
-    smartCardReady &&
     phoneVerified &&
     Number(amount) > 0;
 
@@ -659,7 +650,7 @@ function DetailsStep({
       <FadeSlideIn delay={60}>
         <SectionHead
           title="Transfer details"
-          // sub="Enter the subscriber, smart card, recipient phone, and amount."
+          // sub="Enter the subscriber, recipient phone, and amount."
         />
       </FadeSlideIn>
 
@@ -672,18 +663,6 @@ function DetailsStep({
           icon="person-outline"
         />
       </FadeSlideIn>
-
-      {/* <FadeSlideIn delay={150}>
-        <FlowInput
-          label="Smart card"
-          placeholder="Last 4 digits"
-          value={smartCardNumber}
-          keyboardType="number-pad"
-          onChangeText={onSmartCardNumberChange}
-          icon="keypad-outline"
-          rightLabel={smartCardReady ? 'Ready' : undefined}
-        />
-      </FadeSlideIn> */}
 
       <FadeSlideIn delay={190}>
         <FlowInput
@@ -728,14 +707,12 @@ function DetailsStep({
 
 function ReviewStep({
   subscriberNumber,
-  smartCardNumber,
   phoneNumber,
   financials,
   onEdit,
   onContinue,
 }: {
   subscriberNumber: string;
-  smartCardNumber: string;
   phoneNumber: string;
   financials: ReturnType<typeof selectTransferFinancials>;
   onEdit: () => void;
@@ -759,10 +736,6 @@ function ReviewStep({
             <View style={rv.identityItem}>
               <Text style={rv.identityLabel}>Subscriber</Text>
               <Text style={rv.identityValue}>{subscriberNumber}</Text>
-            </View>
-            <View style={rv.identityItem}>
-              <Text style={rv.identityLabel}>Smart card</Text>
-              <Text style={rv.identityValue}>Last 4: {smartCardNumber}</Text>
             </View>
             <View style={[rv.identityItem, rv.identityWide]}>
               <Text style={rv.identityLabel}>Phone number</Text>

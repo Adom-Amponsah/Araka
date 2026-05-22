@@ -10,8 +10,8 @@ import {
   Text,
   Animated,
   Easing,
+  Dimensions,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useAppStore} from '@shared/store/appStore';
 import {useForm, Controller} from 'react-hook-form';
@@ -34,6 +34,7 @@ const DARK  = '#1A2535';
 const SERIF = getSystemFont('medium');
 const SANS = getSystemFont();
 const CARD_RADIUS = 36;
+const {height} = Dimensions.get('window');
 
 const countryCodeToFlagEmoji = (code: string) =>
   code
@@ -245,8 +246,8 @@ const sd = StyleSheet.create({
 // MAIN SCREEN
 // ─────────────────────────────────────────────
 export function SignUpStep2Screen() {
-  const navigation = useNavigation();
   const startSignup = useAppStore((state) => state.startSignup);
+  const startLogin = useAppStore((state) => state.startLogin);
   const insets    = useSafeAreaInsets();
 
   const {control, handleSubmit, formState} = useForm<SignUpStep2FormData>({mode:'onChange'});
@@ -286,9 +287,8 @@ export function SignUpStep2Screen() {
 
   const onSubmit = (data: SignUpStep2FormData) => {
     console.log('Profile data:', data);
-    // TODO: Call API to complete profile
-    // Navigate to Login screen after successful signup
-    navigation.navigate('Login' as never);
+    // TODO: Call API to complete profile, then return through the auth store.
+    startLogin();
   };
 
   return (
@@ -584,11 +584,12 @@ const s = StyleSheet.create({
 
   // White card
   card:{
-    flex:1,
     backgroundColor:'#FFFFFF',
     borderTopLeftRadius:CARD_RADIUS, borderTopRightRadius:CARD_RADIUS,
     paddingHorizontal:28, paddingTop:28,
+    paddingBottom:200,
     marginTop:-CARD_RADIUS,
+    minHeight:height,
     shadowColor:DARK,
     shadowOffset:{width:0, height:-8},
     shadowOpacity:0.18, shadowRadius:20, elevation:16,

@@ -17,7 +17,6 @@ type TransferState = {
   step: TransferStep;
   session: ActiveServiceSession | null;
   subscriberNumber: string;
-  smartCardNumber: string;
   phoneNumber: string;
   amount: string;
   paymentMethod: PaymentMethod | null;
@@ -27,7 +26,6 @@ type TransferState = {
 
   start: (session: ActiveServiceSession) => void;
   setSubscriberNumber: (subscriberNumber: string) => void;
-  setSmartCardNumber: (smartCardNumber: string) => void;
   setPhoneNumber: (phoneNumber: string) => void;
   setAmount: (amount: string) => void;
   submitDetails: () => void;
@@ -48,7 +46,6 @@ const initialState = {
   step: 'details' as TransferStep,
   session: null,
   subscriberNumber: '',
-  smartCardNumber: '',
   phoneNumber: '',
   amount: '',
   paymentMethod: null,
@@ -71,20 +68,14 @@ export const useTransferFlowStore = create<TransferState>((set, get) => ({
     }),
 
   setSubscriberNumber: subscriberNumber => set({subscriberNumber, error: null}),
-  setSmartCardNumber: smartCardNumber => set({smartCardNumber: smartCardNumber.slice(0, 4), error: null}),
   setPhoneNumber: phoneNumber => set({phoneNumber, error: null}),
   setAmount: amount => set({amount, error: null}),
 
   submitDetails: () => {
-    const {subscriberNumber, smartCardNumber, phoneNumber, amount} = get();
+    const {subscriberNumber, phoneNumber, amount} = get();
 
     if (!subscriberNumber.trim()) {
       set({error: 'Enter subscriber number'});
-      return;
-    }
-
-    if (smartCardNumber.replace(/\D/g, '').length !== 4) {
-      set({error: 'Enter last 4 digits of smart card number'});
       return;
     }
 
