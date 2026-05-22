@@ -54,11 +54,10 @@ const CARDS = [
 ];
 
 const ACTIONS = [
-  {label: 'Details',  icon: 'eye-outline'},
   {label: 'Top Up',   icon: 'add-circle-outline'},
+  {label: 'Details',  icon: 'eye-outline'},
   {label: 'Transfer', icon: 'swap-horizontal-outline'},
-  {label: 'Freeze',   icon: 'snow-outline'},
-  {label: 'Settings', icon: 'settings-outline'},
+  {label: 'More',     icon: 'ellipsis-horizontal-outline'},
 ];
 
 const TRANSACTIONS = [
@@ -280,32 +279,64 @@ function ActionStrip() {
     Animated.spring(scales[i], {toValue: 1, damping: 10, stiffness: 200, useNativeDriver: true}).start();
 
   return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={as.strip}>
+    <View style={as.grid}>
       {ACTIONS.map((action, i) => (
         <Animated.View key={action.label} style={{transform: [{scale: scales[i]}]}}>
           <Pressable
             onPressIn={() => pi(i)}
             onPressOut={() => po(i)}
-            style={as.pill}>
-            <View style={as.pillIcon}>
-              <Ionicons name={action.icon as any} size={17} color={CORAL} />
+            style={[as.tile, i === 0 && as.tilePrimary]}>
+            <View style={[as.pillIcon, i === 0 && as.pillIconPrimary]}>
+              <Ionicons name={action.icon as any} size={18} color={i === 0 ? '#FFFFFF' : CORAL} />
             </View>
-            <Text style={as.pillLabel}>{action.label}</Text>
+            <Text style={[as.pillLabel, i === 0 && as.pillLabelPrimary]}>{action.label}</Text>
           </Pressable>
         </Animated.View>
       ))}
-    </ScrollView>
+    </View>
   );
 }
 
 const as = StyleSheet.create({
-  strip:    {paddingHorizontal: 24, gap: 10, alignItems: 'center'},
-  pill:     {flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#FFFFFF', borderRadius: 22, paddingHorizontal: 14, paddingVertical: 11, borderWidth: 1, borderColor: '#E8EDF2', shadowColor: DARK, shadowOffset: {width: 0, height: 2}, shadowOpacity: 0.04, shadowRadius: 6, elevation: 1},
-  pillIcon: {width: 30, height: 30, borderRadius: 10, backgroundColor: '#FFF1EA', alignItems: 'center', justifyContent: 'center'},
-  pillLabel:{color: DARK, fontSize: 13, fontWeight: '700', fontFamily: SANS},
+  grid: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: 24,
+  },
+  tile: {
+    width: (width - 48 - 24) / 4,
+    minHeight: 78,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#E8EDF2',
+    shadowColor: DARK,
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 1,
+  },
+  tilePrimary: {backgroundColor: CORAL, borderColor: CORAL},
+  pillIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 12,
+    backgroundColor: '#FFF1EA',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pillIconPrimary: {backgroundColor: 'rgba(255,255,255,0.18)'},
+  pillLabel: {
+    color: DARK,
+    fontSize: 11,
+    fontWeight: '800',
+    fontFamily: SANS,
+    textAlign: 'center',
+  },
+  pillLabelPrimary: {color: '#FFFFFF'},
 });
 
 // ═══════════════════════════════════════════════════════════════════════════

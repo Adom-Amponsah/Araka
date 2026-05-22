@@ -295,7 +295,9 @@ export function SignUpStep2Screen() {
         style={s.scroll}
         contentContainerStyle={{flexGrow:1, backgroundColor:SLATE}}
         keyboardShouldPersistTaps="handled"
-        bounces={false}>
+        keyboardDismissMode="on-drag"
+        bounces={false}
+        automaticallyAdjustKeyboardInsets={true}>
 
         {/* ════════════════════════════
             SLATE HERO
@@ -684,3 +686,4 @@ const picker = StyleSheet.create({
     fontFamily: SANS,
   },
 });
+
