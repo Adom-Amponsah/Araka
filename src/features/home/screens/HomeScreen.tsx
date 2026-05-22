@@ -425,7 +425,7 @@ export function HomeScreen() {
         <View style={s.bodyCanvas}>
           
           {/* QUICK SEND (Beneficiaries) */}
-          <QuickSendStrip />
+          {/* <QuickSendStrip /> */}
 
           {/* ASYMMETRICAL BENTO GRID */}
           <BentoGrid />

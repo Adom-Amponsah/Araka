@@ -40,28 +40,31 @@ const ACTIONS = [
 
 const TRANSACTIONS = [
   {
-    id: 'w1',
-    title: 'Airtime - Vodacom',
-    date: 'Feb 17',
-    amount: '-5 USD',
+    id: 't01',
+    title: 'MTN Airtime',
+    provider: 'MTN Mobile',
+    date: '28 Apr, 09:14',
+    amount: '-CDF 20.00',
     icon: 'phone-portrait-outline',
-    bg: '#FEE8DF',
-    color: '#E53E3E',
+    bg: '#FFF8E6',
+    color: '#F59E0B',
   },
   {
-    id: 'w2',
-    title: 'To Natalia',
-    date: 'Feb 20',
-    amount: '-45.30 USD',
-    icon: 'paper-plane-outline',
-    bg: '#FFF3EE',
-    color: CORAL,
+    id: 't02',
+    title: 'SNEL Token',
+    provider: 'Societe Nationale',
+    date: '28 Apr, 07:02',
+    amount: '-CDF 45.00',
+    icon: 'flash-outline',
+    bg: '#FEF3E2',
+    color: '#D97706',
   },
   {
-    id: 'w3',
-    title: 'From Matthew',
-    date: 'Feb 18',
-    amount: '+120 USD',
+    id: 't03',
+    title: 'Wallet Top-up',
+    provider: 'Bank Transfer',
+    date: '27 Apr, 16:45',
+    amount: '+CDF 500.00',
     icon: 'arrow-down-outline',
     bg: '#EDFBF4',
     color: GREEN,
@@ -78,7 +81,7 @@ function WalletTransaction({item}: {item: typeof TRANSACTIONS[number]}) {
         <Text style={styles.txnTitle} numberOfLines={1}>
           {item.title}
         </Text>
-        <Text style={styles.txnDate}>{item.date}</Text>
+        <Text style={styles.txnDate}>{item.provider} - {item.date}</Text>
       </View>
       <Text style={[styles.txnAmount, {color: item.amount.startsWith('+') ? GREEN : CORAL}]}>
         {item.amount}
@@ -145,9 +148,6 @@ export function WalletScreen() {
               <Ionicons name="menu" size={28} color="#FFFFFF" />
             </Pressable>
             <View style={styles.topRight}>
-              <Pressable style={styles.qrBtn}>
-                <Ionicons name="qr-code-outline" size={19} color="#FFFFFF" />
-              </Pressable>
               <Pressable hitSlop={10} onPress={openNotifications} style={styles.notificationBtn}>
                 <Ionicons name="notifications-outline" size={22} color="#FFFFFF" />
                 {unreadNotifications > 0 && (
@@ -156,9 +156,6 @@ export function WalletScreen() {
                   </View>
                 )}
               </Pressable>
-              <View style={styles.avatar}>
-                <Text style={styles.avatarText}>{displayName.slice(0, 2).toUpperCase()}</Text>
-              </View>
             </View>
           </Animated.View>
 
@@ -176,7 +173,7 @@ export function WalletScreen() {
                   <Text style={styles.balance}>
                     {wallet.balance} {wallet.currency}
                   </Text>
-                  <View style={[styles.balanceGlow, {backgroundColor: wallet.tint}]} />
+                  {/* <View style={[styles.balanceGlow, {backgroundColor: wallet.tint}]} /> */}
                 </View>
               ))}
             </ScrollView>
@@ -219,10 +216,10 @@ export function WalletScreen() {
             ))}
           </View>
 
-          <Pressable style={styles.floatBtn}>
+          {/* <Pressable style={styles.floatBtn}>
             <Ionicons name="add" size={16} color="#FFFFFF" />
             <Text style={styles.floatText}>Add Wallet</Text>
-          </Pressable>
+          </Pressable> */}
         </Animated.View>
       </ScrollView>
 
@@ -271,7 +268,6 @@ const styles = StyleSheet.create({
     marginBottom: 34,
   },
   topRight: {flexDirection: 'row', alignItems: 'center', gap: 12},
-  qrBtn: {width: 28, height: 28, alignItems: 'center', justifyContent: 'center'},
   notificationBtn: {width: 28, height: 28, alignItems: 'center', justifyContent: 'center'},
   notificationDot: {
     position: 'absolute',
@@ -288,20 +284,6 @@ const styles = StyleSheet.create({
   notificationCount: {
     color: '#FFFFFF',
     fontSize: 9,
-    fontWeight: '800',
-    fontFamily: getSystemFont('bold'),
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 15,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarText: {
-    color: DARK,
-    fontSize: 12,
     fontWeight: '800',
     fontFamily: getSystemFont('bold'),
   },
