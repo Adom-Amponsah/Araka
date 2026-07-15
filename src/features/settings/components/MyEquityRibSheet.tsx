@@ -58,23 +58,22 @@ export function MyEquityRibSheet({visible, onClose}: MyEquityRibSheetProps) {
           <View style={styles.dragHandle} />
 
           <View style={styles.header}>
-            <Text style={styles.title}>My RIB</Text>
-            <Pressable onPress={onClose} style={styles.closeBtn}>
-              <Ionicons name="close" size={22} color={GRAY} />
-            </Pressable>
+            {/* <Text style={styles.title}>My RIB</Text> */}
           </View>
 
           <View style={styles.logoCard}>
             <View style={styles.logoBox}>
               <Ionicons name="home" size={24} color="#FFFFFF" />
             </View>
-            <View style={styles.logoText}>
-              <Text style={styles.logoTitle}>EQUITY</Text>
-              <Text style={styles.logoSubtitle}>BCDC</Text>
+            <View style={styles.ribInfo}>
+              <Text style={styles.ribTitle}>MY RIB</Text>
+              <Text style={styles.ribNumber}>39930 - 4499494- 949494</Text>
             </View>
           </View>
-
-          <Text style={styles.ribNumber}>28932 - 7921 - 712939839082982</Text>
+          
+          <Pressable onPress={onClose} style={styles.closeBtnTop}>
+            <Ionicons name="close" size={22} color={GRAY} />
+          </Pressable>
 
           <View style={styles.divider} />
 
@@ -125,13 +124,16 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     fontFamily: getSystemFont('bold'),
   },
-  closeBtn: {
+  closeBtnTop: {
+    position: 'absolute',
+    top: 12,
+    right: 24,
     padding: 4,
   },
   logoCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 16,
     marginBottom: 20,
   },
   logoBox: {
@@ -142,7 +144,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  logoText: {},
+  ribInfo: {
+    flex: 1,
+    marginHorizontal: 16,
+    justifyContent: 'center',
+  },
+  ribTitle: {
+    color: DARK,
+    fontSize: 14,
+    fontWeight: '800',
+    fontFamily: getSystemFont('bold'),
+    marginBottom: 1,
+  },
+  ribNumber: {
+    color: DARK,
+    fontSize: 12,
+    fontWeight: '600',
+    fontFamily: getSystemFont('bold'),
+    letterSpacing: 0.3,
+  },
+  logoText: {
+    alignItems: 'flex-end',
+  },
   logoTitle: {
     color: DARK,
     fontSize: 16,
@@ -154,14 +177,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     fontFamily: getSystemFont('bold'),
-  },
-  ribNumber: {
-    color: DARK,
-    fontSize: 16,
-    fontWeight: '700',
-    fontFamily: getSystemFont('bold'),
-    letterSpacing: 0.5,
-    marginBottom: 20,
   },
   divider: {
     height: 1,

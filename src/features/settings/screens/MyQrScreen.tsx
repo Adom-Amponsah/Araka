@@ -35,13 +35,13 @@ export function MyQrScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.root}>
-      <View style={styles.header}>
+    <View style={styles.root}>
+      <View style={[styles.header, {paddingTop: Math.max(insets.top, 20) + 16}]}>
         <Pressable onPress={() => navigation.goBack()} style={styles.iconBtn}>
           <Ionicons name="arrow-back" size={26} color={DARK} />
         </Pressable>
         <Text style={styles.title}>My QR Code</Text>
-        <Pressable style={styles.iconBtn}>
+        <Pressable onPress={() => navigation.navigate('MainTabs', {screen: 'Pay'})} style={styles.iconBtn}>
           <Ionicons name="qr-code" size={22} color={CORAL} />
         </Pressable>
       </View>
@@ -74,7 +74,7 @@ export function MyQrScreen() {
           <Text style={styles.ctaText}>Share QR Code</Text>
         </Pressable>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -87,9 +87,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 12,
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: 16,
   },
   iconBtn: {
     padding: 8,
@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
   content: {
     flexGrow: 1,
     paddingHorizontal: 24,
-    paddingTop: 8,
+    paddingTop: 24,
   },
   card: {
     backgroundColor: '#FFFFFF',
@@ -165,6 +165,7 @@ const styles = StyleSheet.create({
   footer: {
     paddingHorizontal: 24,
     paddingTop: 12,
+    marginBottom: 32,
     backgroundColor: '#F7F9FC',
   },
   cta: {
