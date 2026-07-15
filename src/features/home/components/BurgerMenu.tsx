@@ -3,6 +3,7 @@ import {
   Animated,
   Dimensions,
   Easing,
+  Image,
   Modal,
   Pressable,
   ScrollView,
@@ -32,27 +33,16 @@ type MenuItem = {
 };
 
 const MENU_ITEMS: MenuItem[] = [
+  {label: 'QR Code', icon: 'grid-outline', screen: 'QRCode'},
+  {label: 'Invoices', icon: 'document-text-outline', screen: 'Invoices'},
   {label: 'Language', icon: 'language-outline', screen: 'LanguageSettings'},
-  {label: 'Security', icon: 'shield-checkmark-outline', screen: 'SecuritySettings'},
-  {
-    label: 'Help Center',
-    caption: 'Answers about transfers and airtime',
-    icon: 'help-buoy-outline',
-    screen: 'HelpCenter',
-  },
-  {
-    label: 'Araka Support',
-    caption: 'Get help from the team',
-    icon: 'chatbubble-ellipses-outline',
-    screen: 'ArakaSupport',
-  },
-  {
-    label: 'Report a problem',
-    caption: 'Tell us what went wrong',
-    icon: 'alert-circle-outline',
-    screen: 'ReportProblem',
-  },
+  {label: 'Report a problem', icon: 'alert-circle-outline', screen: 'ReportProblem'},
+  {label: 'Rate the App', icon: 'star-outline', screen: 'RateApp'},
+  {label: 'FAQ', icon: 'help-circle-outline', screen: 'FAQ'},
+  {label: 'Contact ProxyPay', icon: 'chatbubble-ellipses-outline', screen: 'ContactProxyPay'},
+  {label: 'Share the App', icon: 'share-outline', screen: 'ShareApp'},
   {label: 'Terms & Conditions', icon: 'document-text-outline', screen: 'Terms'},
+  {label: 'Fees for all services', icon: 'information-circle-outline', screen: 'Fees'},
 ];
 
 const getInitials = (name?: string, email?: string) => {
@@ -79,7 +69,7 @@ export function BurgerMenu({visible, onClose, name, email}: BurgerMenuProps) {
   const slideX = React.useRef(new Animated.Value(-width)).current;
   const backdrop = React.useRef(new Animated.Value(0)).current;
   const initials = getInitials(name, email);
-  const logout = useAppStore(state => state.logout);
+  const userImage = useAppStore(state => state.user?.selfieUri);
 
   React.useEffect(() => {
     if (visible) {
@@ -120,7 +110,11 @@ export function BurgerMenu({visible, onClose, name, email}: BurgerMenuProps) {
   const handleItemPress = (screen: keyof MenuStackParamList) => {
     onClose();
     requestAnimationFrame(() => {
-      navigation.navigate('Menu', {screen});
+      if (screen === 'QRCode') {
+        navigation.navigate('Pay');
+      } else {
+        navigation.navigate('Menu', {screen});
+      }
     });
   };
 
@@ -146,10 +140,7 @@ export function BurgerMenu({visible, onClose, name, email}: BurgerMenuProps) {
           },
         ]}>
         <View style={styles.closeRow}>
-          <View style={styles.brandMark}>
-            <View style={styles.brandDot} />
-            <Text style={styles.brandText}>ARAKA</Text>
-          </View>
+          <View />
           <Pressable onPress={onClose} hitSlop={10} style={styles.closeBtn}>
             <Ionicons name="close" size={17} color="#8A94A6" />
           </Pressable>
@@ -157,9 +148,13 @@ export function BurgerMenu({visible, onClose, name, email}: BurgerMenuProps) {
 
         <View style={styles.profile}>
           <View style={styles.avatarOuter}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{initials}</Text>
-            </View>
+            {userImage ? (
+              <Image source={{uri: userImage}} style={styles.avatar} />
+            ) : (
+              <View style={[styles.avatar, styles.avatarFallback]}>
+                <Text style={styles.avatarText}>{initials}</Text>
+              </View>
+            )}
           </View>
           <View style={styles.profileCopy}>
             <Text style={styles.name} numberOfLines={1}>
@@ -183,18 +178,12 @@ export function BurgerMenu({visible, onClose, name, email}: BurgerMenuProps) {
                 </View>
                 <View style={styles.itemCopy}>
                   <Text style={styles.itemLabel}>{item.label}</Text>
-                  {item.caption ? <Text style={styles.itemCaption}>{item.caption}</Text> : null}
                 </View>
                 <Ionicons name="chevron-forward" size={16} color="#C4CDD8" />
               </Pressable>
             ))}
           </View>
         </ScrollView>
-
-        <Pressable style={styles.logoutBtn} onPress={logout}>
-          <Ionicons name="log-out-outline" size={18} color="#EF4444" />
-          <Text style={styles.logoutText}>Logout</Text>
-        </Pressable>
       </Animated.View>
     </Modal>
   );
@@ -268,24 +257,27 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   avatarOuter: {
-    width: 58,
-    height: 58,
-    borderRadius: 20,
-    backgroundColor: '#FEEDE6',
+    width: 64,
+    height: 64,
+    borderRadius: 18,
+    backgroundColor: '#FFF3EE',
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
   avatar: {
-    width: 46,
-    height: 46,
-    borderRadius: 16,
+    width: 64,
+    height: 64,
+    borderRadius: 18,
+  },
+  avatarFallback: {
     backgroundColor: CORAL,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '800',
     fontFamily: getSystemFont('bold'),
   },

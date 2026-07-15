@@ -5,11 +5,13 @@ import {BottomTabs} from './BottomTabs';
 import {ServiceFlowHost} from '@features/services/navigation/ServiceFlowHost';
 import {NotificationsScreen} from '@features/notifications/screens/NotificationsScreen';
 import {MenuNavigator, MenuStackParamList} from '@features/menu/navigation/MenuNavigator';
+import {MyQrScreen} from '@features/settings/screens/MyQrScreen';
 
 export type MainStackParamList = {
   MainTabs: undefined;
   ServiceFlow: undefined;
   Notifications: undefined;
+  MyQR: undefined;
   Menu: NavigatorScreenParams<MenuStackParamList> | undefined;
 };
 
@@ -36,6 +38,7 @@ export function MainNavigator() {
         }}
       />
       <MainStack.Screen name="Notifications" component={NotificationsScreen} />
+      <MainStack.Screen name="MyQR" component={MyQrScreen} />
       <MainStack.Screen name="Menu" component={MenuNavigator} />
     </MainStack.Navigator>
   );

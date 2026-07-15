@@ -9,36 +9,16 @@ export type SystemFontWeight =
   | 'light'
   | 'condensed';
 
-export const getSystemFont = (weight: SystemFontWeight = 'regular') =>
-  Platform.select({
-    ios: 'System',
-    android: (() => {
-      switch (weight) {
-        case 'light':
-          return 'sans-serif-light';
-        case 'medium':
-        case 'semibold':
-          return 'sans-serif-medium';
-        case 'bold':
-        case 'black':
-          return 'sans-serif-black';
-        case 'condensed':
-          return 'sans-serif-condensed';
-        default:
-          return 'sans-serif';
-      }
-    })(),
-    default: 'sans-serif',
-  }) ?? 'sans-serif';
+export const getSystemFont = (weight: SystemFontWeight = 'regular') => 'DM Sans';
 
 export const systemFonts = {
-  regular: getSystemFont('regular'),
-  medium: getSystemFont('medium'),
-  semibold: getSystemFont('semibold'),
-  bold: getSystemFont('bold'),
-  black: getSystemFont('black'),
-  light: getSystemFont('light'),
-  condensed: getSystemFont('condensed'),
+  regular: 'DM Sans',
+  medium: 'DM Sans',
+  semibold: 'DM Sans',
+  bold: 'DM Sans',
+  black: 'DM Sans',
+  light: 'DM Sans',
+  condensed: 'DM Sans',
 };
 
 export const typography = {

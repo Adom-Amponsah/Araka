@@ -33,8 +33,8 @@ const WALLETS = [
 
 const ACTIONS = [
   {label: 'Top Up', icon: 'add-outline'},
-  {label: 'Send', icon: 'arrow-up-outline'},
-  {label: 'Withdraw', icon: 'download-outline'},
+  {label: 'Send', icon: 'paper-plane-outline'},
+  {label: 'Withdraw', icon: 'arrow-down-outline'},
   {label: 'More', icon: 'ellipsis-horizontal-outline'},
 ];
 
@@ -80,14 +80,16 @@ const TRANSACTIONS = [
   },
 ];
 
-// Action strip — grid-style tiles
+// Action strip — circular buttons on the orange hero
 function ActionStrip() {
   const scales = ACTIONS.map(() => React.useRef(new Animated.Value(1)).current);
 
   const pi = (i: number) =>
-    Animated.spring(scales[i], {toValue: 0.93, damping: 14, stiffness: 280, useNativeDriver: true}).start();
+    Animated.spring(scales[i], {toValue: 0.9, damping: 14, stiffness: 280, useNativeDriver: true}).start();
   const po = (i: number) =>
     Animated.spring(scales[i], {toValue: 1, damping: 10, stiffness: 200, useNativeDriver: true}).start();
+
+  const tints = ['#D6653D', '#E07C55', '#EA9270', '#F5A98C'];
 
   return (
     <View style={as.grid}>
@@ -97,8 +99,8 @@ function ActionStrip() {
             onPressIn={() => pi(i)}
             onPressOut={() => po(i)}
             style={as.tile}>
-            <View style={as.pillIcon}>
-              <Ionicons name={action.icon as any} size={18} color={CORAL} />
+            <View style={[as.pillIcon, {backgroundColor: tints[i]}]}>
+              <Ionicons name={action.icon as any} size={20} color="#FFFFFF" />
             </View>
             <Text style={as.pillLabel}>{action.label}</Text>
           </Pressable>
@@ -111,37 +113,29 @@ function ActionStrip() {
 const as = StyleSheet.create({
   grid: {
     flexDirection: 'row',
-    gap: 8,
-    justifyContent: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
   },
   tile: {
-    width: (width - 48) / 4,
-    minHeight: 78,
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 7,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: '#E8EDF2',
-    shadowColor: DARK,
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 1,
+    gap: 8,
   },
   pillIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 12,
-    backgroundColor: '#FFF1EA',
+    width: 54,
+    height: 54,
+    borderRadius: 27,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: DARK,
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 3,
   },
   pillLabel: {
-    color: DARK,
-    fontSize: 11,
-    fontWeight: '800',
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '600',
     fontFamily: SANS,
     textAlign: 'center',
   },
@@ -279,14 +273,19 @@ export function WalletScreen() {
             <Pressable hitSlop={10} onPress={() => setMenuVisible(true)}>
               <Ionicons name="menu" size={28} color="#FFFFFF" />
             </Pressable>
-            <Pressable hitSlop={10} onPress={openNotifications} style={styles.notificationBtn}>
-              <Ionicons name="notifications-outline" size={22} color="#FFFFFF" />
-              {unreadNotifications > 0 && (
-                <View style={styles.notificationDot}>
-                  <Text style={styles.notificationCount}>{unreadNotifications}</Text>
-                </View>
-              )}
-            </Pressable>
+            <View style={styles.headerRight}>
+              <Pressable hitSlop={10} onPress={openNotifications} style={styles.notificationBtn}>
+                <Ionicons name="notifications-outline" size={22} color="#FFFFFF" />
+                {unreadNotifications > 0 && (
+                  <View style={styles.notificationDot}>
+                    <Text style={styles.notificationCount}>{unreadNotifications}</Text>
+                  </View>
+                )}
+              </Pressable>
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>{displayName.split(' ').map(n => n[0]).join('')}</Text>
+              </View>
+            </View>
           </Animated.View>
 
           <Animated.View style={{opacity: heroFade, transform: [{translateY: heroY}]}}>
@@ -315,15 +314,24 @@ export function WalletScreen() {
                 />
               ))}
             </View>
+
+            <View style={styles.actionWrap}>
+              <ActionStrip />
+            </View>
           </Animated.View>
         </View>
 
-        <Animated.View style={[styles.curveShadow, {opacity: cardFade}]} />
 
         <Animated.View
           style={[styles.card, {opacity: cardFade, transform: [{translateY: cardSlide}]}]}>
-          <View style={styles.actionWrap}>
-            <ActionStrip />
+          <View style={styles.payBillsCard}>
+            <View style={styles.payBillsText}>
+              <Text style={styles.payBillsTitle}>Pay bills</Text>
+              <Text style={styles.payBillsSub}>Pay your bills securely in seconds.</Text>
+            </View>
+            <Pressable style={styles.payBillsBtn}>
+              <Text style={styles.payBillsBtnText}>Pay Bills</Text>
+            </Pressable>
           </View>
 
           <View style={styles.sectionHead}>
@@ -362,7 +370,6 @@ const styles = StyleSheet.create({
   hero: {
     backgroundColor: CORAL,
     paddingHorizontal: 24,
-    paddingBottom: 70,
   },
   ringOuter: {
     position: 'absolute',
@@ -390,7 +397,26 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 34,
   },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
   notificationBtn: {width: 28, height: 28, alignItems: 'center', justifyContent: 'center'},
+  avatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarText: {
+    color: CORAL,
+    fontSize: 13,
+    fontWeight: 'bold',
+    fontFamily: getSystemFont('bold'),
+  },
   notificationDot: {
     position: 'absolute',
     top: -3,
@@ -456,7 +482,7 @@ const styles = StyleSheet.create({
   },
   card: {
     minHeight: 520,
-    marginTop: -1,
+    marginTop: 20,
     backgroundColor: OFF,
     borderTopLeftRadius: 36,
     borderTopRightRadius: 36,
@@ -465,8 +491,48 @@ const styles = StyleSheet.create({
     paddingBottom: 110,
   },
   actionWrap: {
-    marginTop: -38,
-    marginBottom: 28,
+    paddingTop: 24,
+    paddingBottom: 24,
+  },
+  payBillsCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    padding: 16,
+    marginTop: -20,
+    marginBottom: 24,
+    shadowColor: DARK,
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  payBillsText: {flex: 1, paddingRight: 12},
+  payBillsTitle: {
+    color: DARK,
+    fontSize: 16,
+    fontWeight: 'bold',
+    fontFamily: getSystemFont('bold'),
+    marginBottom: 4,
+  },
+  payBillsSub: {
+    color: '#9CA3AF',
+    fontSize: 12,
+    fontFamily: SANS,
+  },
+  payBillsBtn: {
+    backgroundColor: CORAL,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 10,
+  },
+  payBillsBtnText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: 'bold',
+    fontFamily: getSystemFont('bold'),
   },
   sectionHead: {
     flexDirection: 'row',

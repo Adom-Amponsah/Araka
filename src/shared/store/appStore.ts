@@ -15,12 +15,21 @@ export type AuthStep =
   | 'login'
   | 'signup'
   | 'otp'
-  | 'profileSetup';
+  | 'profileSetup'
+  | 'idUpload'
+  | 'selfie'
+  | 'pinCreation'
+  | 'confirmPin'
+  | 'congrats';
 
 export type User = {
   id: string;
   email: string;
   name?: string;
+  idImageUri?: string;
+  idImageSource?: 'library' | 'camera';
+  selfieUri?: string;
+  selfieSource?: 'library' | 'camera';
 };
 
 // ============================================================================
@@ -33,6 +42,8 @@ interface AppState {
   authStep: AuthStep;
   user: User | null;
   token: string | null;
+  signupData: Partial<User> | null;
+  signupPin: string | null;
   hydrated: boolean;
 }
 
@@ -49,7 +60,18 @@ interface AppActions {
   startSignup: () => void;
   submitSignupForm: () => void;
   verifyOtp: () => void;
-  completeProfile: (user: User, token: string) => void;
+  completeProfileSetup: (user: User) => void;
+  updateSignupData: (data: Partial<User>) => void;
+  completeIdUpload: () => void;
+  completeSelfie: () => void;
+  completePinCreation: (pin: string) => void;
+  completePinConfirmation: () => void;
+  completeCongrats: () => void;
+  completeSignup: (token: string) => void;
+  backToProfileSetup: () => void;
+  backToIdUpload: () => void;
+  backToSelfie: () => void;
+  backToPinCreation: () => void;
   loginSuccess: (user: User, token: string) => void;
   logout: () => void;
   previewOnboarding: () => void;
@@ -72,6 +94,8 @@ export const useAppStore = create<AppStore>()(
       authStep: 'authHome',
       user: null,
       token: null,
+      signupData: null,
+      signupPin: null,
       hydrated: false,
 
       // Hydration - validates and normalizes state on app startup
@@ -136,15 +160,54 @@ export const useAppStore = create<AppStore>()(
       startSignup: () => set({authStep: 'signup'}),
       
       submitSignupForm: () => set({authStep: 'otp'}),
-      
+
       verifyOtp: () => set({authStep: 'profileSetup'}),
 
-      completeProfile: (user, token) =>
+      completeProfileSetup: (user: User) =>
         set({
-          appFlow: 'main',
-          user,
-          token,
+          authStep: 'idUpload',
+          signupData: user,
         }),
+
+      updateSignupData: (data: Partial<User>) =>
+        set((state) => ({
+          signupData: state.signupData ? {...state.signupData, ...data} : data,
+        })),
+
+      completeIdUpload: () => set({authStep: 'selfie'}),
+
+      completeSelfie: () => set({authStep: 'pinCreation'}),
+
+      completePinCreation: (pin: string) =>
+        set({authStep: 'confirmPin', signupPin: pin}),
+
+      completePinConfirmation: () => set({authStep: 'congrats'}),
+
+      completeCongrats: () =>
+        set((state) => ({
+          appFlow: 'main',
+          user: state.signupData as User,
+          token: 'dummy-token',
+          signupData: null,
+          signupPin: null,
+        })),
+
+      completeSignup: (token: string) =>
+        set((state) => ({
+          appFlow: 'main',
+          user: state.signupData as User,
+          token,
+          signupData: null,
+          signupPin: null,
+        })),
+
+      backToProfileSetup: () => set({authStep: 'profileSetup'}),
+
+      backToIdUpload: () => set({authStep: 'idUpload'}),
+
+      backToSelfie: () => set({authStep: 'selfie'}),
+
+      backToPinCreation: () => set({authStep: 'pinCreation'}),
 
       loginSuccess: (user, token) =>
         set({
@@ -159,6 +222,8 @@ export const useAppStore = create<AppStore>()(
           authStep: 'authHome',
           user: null,
           token: null,
+          signupData: null,
+          signupPin: null,
         }),
 
       // Preview onboarding without losing auth state
@@ -184,6 +249,8 @@ export const useAppStore = create<AppStore>()(
         authStep: state.authStep,
         user: state.user,
         token: state.token,
+        signupData: state.signupData,
+        // signupPin intentionally not persisted
       }),
     },
   ),

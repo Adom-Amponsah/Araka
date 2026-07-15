@@ -13,81 +13,72 @@ import {useAppStore} from '@shared/store/appStore';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {getSystemFont} from '@styles/typography';
 
-const CORAL = '#F27649';
+const CORAL = '#D96B45';
 
-export function OTPVerificationScreen() {
-  const verifyOtp = useAppStore((state) => state.verifyOtp);
-  const startSignup = useAppStore((state) => state.startSignup);
+export function PinCreationScreen() {
   const insets = useSafeAreaInsets();
-  const [otp, setOtp] = React.useState(['', '', '', '', '', '']);
+  const completePinCreation = useAppStore((state) => state.completePinCreation);
+  const backToSelfie = useAppStore((state) => state.backToSelfie);
+  const [pin, setPin] = React.useState(['', '', '', '']);
   const [focusedIndex, setFocusedIndex] = React.useState(0);
   const inputRefs = React.useRef<(TextInput | null)[]>([]);
 
-  const handleOtpChange = (value: string, index: number) => {
+  const handleChange = (value: string, index: number) => {
     if (!/^\d?$/.test(value)) return;
-    const newOtp = [...otp];
-    newOtp[index] = value;
-    setOtp(newOtp);
-    if (value && index < 5) {
+    const newPin = [...pin];
+    newPin[index] = value;
+    setPin(newPin);
+    if (value && index < 3) {
       inputRefs.current[index + 1]?.focus();
     }
   };
 
   const handleKeyPress = (e: any, index: number) => {
-    if (e.nativeEvent.key === 'Backspace' && !otp[index] && index > 0) {
+    if (e.nativeEvent.key === 'Backspace' && !pin[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
     }
   };
 
-  const handleFocus = (index: number) => setFocusedIndex(index);
-
   const handleContinue = () => {
-    const otpCode = otp.join('');
-    console.log('OTP Code:', otpCode);
-    verifyOtp();
-  };
-
-  const handleResend = () => {
-    console.log('Resending OTP...');
-    setOtp(['', '', '', '', '', '']);
-    setFocusedIndex(0);
-    inputRefs.current[0]?.focus();
+    console.log('PIN created:', pin.join(''));
+    completePinCreation(pin.join(''));
   };
 
   return (
     <KeyboardAvoidingView
-      style={[styles.container, {paddingTop: insets.top}]}
+      style={[styles.root, {paddingTop: insets.top}]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <Pressable onPress={() => startSignup()} style={styles.backButton}>
+      <Pressable onPress={backToSelfie} style={styles.backButton}>
         <Ionicons name="arrow-back" size={24} color="#111827" />
       </Pressable>
 
       <View style={styles.content}>
-        <Text style={styles.title}>Enter Verification Code</Text>
-        <Text style={styles.subtitle}>Code sent to +243 99X XXX XXX</Text>
+        <Text style={styles.title}>Create your PIN</Text>
+        <Text style={styles.subtitle}>It must be 4 digits</Text>
 
-        <View style={styles.otpContainer}>
-          {otp.map((digit, index) => {
+        <View style={styles.pinContainer}>
+          {pin.map((digit, index) => {
             const filled = digit !== '';
             const focused = focusedIndex === index;
             return (
               <View
                 key={index}
                 style={[
-                  styles.otpBox,
-                  (filled || focused) && styles.otpBoxActive,
+                  styles.pinBox,
+                  (filled || focused) && styles.pinBoxActive,
                 ]}>
                 <TextInput
                   ref={(ref) => {
                     inputRefs.current[index] = ref;
                   }}
                   value={digit}
-                  onChangeText={(value) => handleOtpChange(value, index)}
+                  onChangeText={(value) => handleChange(value, index)}
                   onKeyPress={(e) => handleKeyPress(e, index)}
-                  onFocus={() => handleFocus(index)}
+                  onFocus={() => setFocusedIndex(index)}
                   keyboardType="number-pad"
                   maxLength={1}
-                  style={styles.otpInput}
+                  secureTextEntry
+                  style={styles.pinInput}
                   autoFocus={index === 0}
                 />
               </View>
@@ -97,19 +88,12 @@ export function OTPVerificationScreen() {
 
         <Pressable
           onPress={handleContinue}
-          disabled={otp.join('').length !== 6}
+          disabled={pin.join('').length !== 4}
           style={[
-            styles.continueButton,
-            otp.join('').length !== 6 && styles.continueButtonDisabled,
+            styles.ctaButton,
+            pin.join('').length !== 4 && styles.ctaButtonDisabled,
           ]}>
-          <Text style={styles.continueButtonText}>Continue</Text>
-        </Pressable>
-
-        <Pressable onPress={handleResend} style={styles.resendButton}>
-          <Text style={styles.resendText}>
-            Didn't get the code?{' '}
-            <Text style={styles.resendLink}>Resend</Text>
-          </Text>
+          <Text style={styles.ctaButtonText}>Continue</Text>
         </Pressable>
       </View>
     </KeyboardAvoidingView>
@@ -117,7 +101,7 @@ export function OTPVerificationScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  root: {
     flex: 1,
     backgroundColor: '#FFFFFF',
   },
@@ -136,7 +120,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontFamily: getSystemFont('bold'),
     textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   subtitle: {
     color: '#6B7280',
@@ -145,25 +129,26 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 48,
   },
-  otpContainer: {
+  pinContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
+    gap: 16,
     marginBottom: 48,
   },
-  otpBox: {
-    width: 48,
-    height: 56,
+  pinBox: {
+    width: 58,
+    height: 58,
     borderWidth: 1.5,
     borderColor: '#E5E7EB',
-    borderRadius: 12,
+    borderRadius: 14,
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  otpBoxActive: {
+  pinBoxActive: {
     borderColor: CORAL,
   },
-  otpInput: {
+  pinInput: {
     fontSize: 24,
     fontWeight: 'bold',
     fontFamily: getSystemFont('bold'),
@@ -171,33 +156,19 @@ const styles = StyleSheet.create({
     color: '#111827',
     width: '100%',
   },
-  continueButton: {
+  ctaButton: {
     backgroundColor: CORAL,
-    borderRadius: 12,
-    paddingVertical: 16,
-    marginBottom: 24,
+    borderRadius: 14,
+    paddingVertical: 17,
     alignItems: 'center',
   },
-  continueButtonDisabled: {
-    backgroundColor: '#D1D5DB',
+  ctaButtonDisabled: {
+    backgroundColor: '#E5E7EB',
   },
-  continueButtonText: {
+  ctaButtonText: {
     color: '#FFFFFF',
     fontWeight: 'bold',
     fontFamily: getSystemFont('bold'),
-    fontSize: 18,
-  },
-  resendButton: {
-    alignItems: 'center',
-  },
-  resendText: {
-    color: '#6B7280',
-    fontSize: 14,
-    fontFamily: getSystemFont(),
-  },
-  resendLink: {
-    color: CORAL,
-    fontWeight: '600',
-    fontFamily: getSystemFont('medium'),
+    fontSize: 17,
   },
 });

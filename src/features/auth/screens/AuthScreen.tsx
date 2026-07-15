@@ -97,7 +97,8 @@ export function AuthScreen() {
             onPress={handleLogin}
             style={styles.secondaryButton}>
             <Text style={styles.secondaryButtonText}>
-              Already have an account? Log In
+              Already have an account?{' '}
+              <Text style={styles.loginLink}>Log In</Text>
             </Text>
           </Pressable>
         </View>
@@ -146,18 +147,13 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     width: '100%',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#D96B45',
     borderRadius: 16,
     paddingVertical: 16,
     paddingHorizontal: 24,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 4},
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
   },
   primaryButtonText: {
-    color: '#F27649',
+    color: '#FFFFFF',
     fontWeight: 'bold',
     fontFamily: getSystemFont('bold'),
     textAlign: 'center',
@@ -169,8 +165,6 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 24,
     borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -179,5 +173,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     fontFamily: getSystemFont('medium'),
+  },
+  loginLink: {
+    fontWeight: 'bold',
+    fontFamily: getSystemFont('bold'),
+    // textDecorationLine: 'underline',
   },
 });

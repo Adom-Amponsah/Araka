@@ -6,6 +6,7 @@ import {TermsScreen} from '../screens/TermsScreen';
 import {HelpCenterScreen} from '../screens/HelpCenterScreen';
 import {ArakaSupportScreen} from '../screens/ArakaSupportScreen';
 import {ReportProblemScreen} from '../screens/ReportProblemScreen';
+import {MenuPlaceholderScreen} from '../screens/MenuPlaceholderScreen';
 
 export type MenuStackParamList = {
   LanguageSettings: undefined;
@@ -14,6 +15,13 @@ export type MenuStackParamList = {
   ArakaSupport: undefined;
   ReportProblem: undefined;
   Terms: undefined;
+  QRCode: undefined;
+  Invoices: undefined;
+  RateApp: undefined;
+  FAQ: undefined;
+  ContactProxyPay: undefined;
+  ShareApp: undefined;
+  Fees: undefined;
 };
 
 const MenuStack = createNativeStackNavigator<MenuStackParamList>();
@@ -31,6 +39,13 @@ export function MenuNavigator() {
       <MenuStack.Screen name="ArakaSupport" component={ArakaSupportScreen} />
       <MenuStack.Screen name="ReportProblem" component={ReportProblemScreen} />
       <MenuStack.Screen name="Terms" component={TermsScreen} />
+      <MenuStack.Screen name="QRCode" component={MenuPlaceholderScreen} />
+      <MenuStack.Screen name="Invoices" component={MenuPlaceholderScreen} />
+      <MenuStack.Screen name="RateApp" component={MenuPlaceholderScreen} />
+      <MenuStack.Screen name="FAQ" component={MenuPlaceholderScreen} />
+      <MenuStack.Screen name="ContactProxyPay" component={MenuPlaceholderScreen} />
+      <MenuStack.Screen name="ShareApp" component={MenuPlaceholderScreen} />
+      <MenuStack.Screen name="Fees" component={MenuPlaceholderScreen} />
     </MenuStack.Navigator>
   );
 }

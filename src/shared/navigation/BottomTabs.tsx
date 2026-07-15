@@ -10,11 +10,11 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {BottomTabBarProps} from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-import {HomeScreen}         from '@features/home/screens/HomeScreen';
 import {WalletScreen}       from '@features/wallet/screens/WalletScreen';
 import {ServicesScreen}     from '@features/services/screens/ServicesScreen';
-import {TransactionsScreen} from '@features/transactions/screens/TransactionsScreen';
-import {VirtualCardsScreen} from '@features/cards/screens/VirtualCardsScreen';
+import {QrScanScreen}       from '@features/pay/screens/QrScanScreen';
+import {SettingsScreen}     from '@features/settings/screens/SettingsScreen';
+import {CardsNavigator}     from '@features/cards/navigation/CardsNavigator';
 
 const CORAL = '#F27649';
 const DARK  = '#1A2535';
@@ -25,9 +25,9 @@ const DARK  = '#1A2535';
 const TABS = [
   {name: 'Home', icon: 'home-outline', iconActive: 'home'},
   {name: 'Services', icon: 'albums-outline', iconActive: 'albums'},
-  {name: 'Wallet', icon: 'wallet-outline', iconActive: 'wallet', isFab: true},
-  {name: 'Transactions', icon: 'time-outline', iconActive: 'time'},
+  {name: 'Pay', icon: 'grid-outline', iconActive: 'grid', isFab: true},
   {name: 'VirtualCards', icon: 'card-outline', iconActive: 'card'},
+  {name: 'Settings', icon: 'settings-outline', iconActive: 'settings'},
 ];
 
 // ─────────────────────────────────────────────
@@ -184,7 +184,7 @@ function FabButton({onPress, isActive}: {onPress: () => void; isActive: boolean}
       onPressOut={pressOut}
       style={fab.touch}
       accessibilityRole="button"
-      accessibilityLabel="Wallet">
+      accessibilityLabel="Pay">
       <Animated.View
         style={[
           fab.btn,
@@ -195,7 +195,7 @@ function FabButton({onPress, isActive}: {onPress: () => void; isActive: boolean}
         {/* The button itself */}
         <View style={fab.inner}>
           {/* Diagonal arrow — same language as onboarding CTA */}
-          <Ionicons name="wallet" size={23} color="#FFFFFF" />
+          <Ionicons name="grid" size={23} color="#FFFFFF" />
         </View>
       </Animated.View>
     </Pressable>
@@ -275,6 +275,12 @@ const fab = StyleSheet.create({
 // ─────────────────────────────────────────────
 function CustomTabBar({state, navigation}: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
+  const activeRoute = state.routes[state.index].name;
+
+  // The QR scanner is a full-screen camera page — no bottom tabs there
+  if (activeRoute === 'Pay') {
+    return null;
+  }
 
   return (
     <View style={[bar.root, {paddingBottom: Math.max(insets.bottom, 8)}]}>
@@ -360,11 +366,11 @@ export function BottomTabs() {
         headerShown: false,
         lazy: true,
       }}>
-      <Tab.Screen name="Home"         component={HomeScreen} />
+      <Tab.Screen name="Home"         component={WalletScreen} />
       <Tab.Screen name="Services"     component={ServicesScreen} />
-      <Tab.Screen name="Wallet"       component={WalletScreen} />
-      <Tab.Screen name="Transactions" component={TransactionsScreen} />
-      <Tab.Screen name="VirtualCards" component={VirtualCardsScreen} />
+      <Tab.Screen name="Pay"          component={QrScanScreen} />
+      <Tab.Screen name="VirtualCards" component={CardsNavigator} />
+      <Tab.Screen name="Settings" component={SettingsScreen} />
     </Tab.Navigator>
   );
 }
