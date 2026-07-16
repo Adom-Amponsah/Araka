@@ -7,6 +7,7 @@ import {HelpCenterScreen} from '../screens/HelpCenterScreen';
 import {ArakaSupportScreen} from '../screens/ArakaSupportScreen';
 import {ReportProblemScreen} from '../screens/ReportProblemScreen';
 import {MenuPlaceholderScreen} from '../screens/MenuPlaceholderScreen';
+import {FeesScreen} from '../screens/FeesScreen';
 
 export type MenuStackParamList = {
   LanguageSettings: undefined;
@@ -45,7 +46,7 @@ export function MenuNavigator() {
       <MenuStack.Screen name="FAQ" component={MenuPlaceholderScreen} />
       <MenuStack.Screen name="ContactProxyPay" component={MenuPlaceholderScreen} />
       <MenuStack.Screen name="ShareApp" component={MenuPlaceholderScreen} />
-      <MenuStack.Screen name="Fees" component={MenuPlaceholderScreen} />
+      <MenuStack.Screen name="Fees" component={FeesScreen} />
     </MenuStack.Navigator>
   );
 }
