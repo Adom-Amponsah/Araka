@@ -1,27 +1,18 @@
 import {create} from 'zustand';
-import {PaymentTelcoId} from '../registry/serviceRegistry';
 import {ActiveServiceSession} from './serviceSessionStore';
 
 export type AirtimeTopupStep =
   | 'details'
   | 'review'
-  | 'paymentMethod'
-  | 'mobileMoneyDetails'
-  | 'cardRedirect'
-  | 'paymentConfirmation'
+  | 'processing'
   | 'success'
   | 'failed';
-
-export type PaymentMethod = 'mobileMoney' | 'card';
 
 type AirtimeTopupState = {
   step: AirtimeTopupStep;
   session: ActiveServiceSession | null;
   phoneNumber: string;
   amount: string;
-  paymentMethod: PaymentMethod | null;
-  paymentTelco: PaymentTelcoId | null;
-  mobileNumber: string;
   error: string | null;
 
   start: (session: ActiveServiceSession) => void;
@@ -30,14 +21,8 @@ type AirtimeTopupState = {
   submitDetails: () => void;
   editDetails: () => void;
   confirmReview: () => void;
-  backToReview: () => void;
-  selectPaymentMethod: (paymentMethod: PaymentMethod) => void;
-  selectPaymentTelco: (paymentTelco: PaymentTelcoId) => void;
-  setMobileNumber: (mobileNumber: string) => void;
-  completeMobileMoneyDetails: () => void;
-  verifyPayment: () => void;
+  completePayment: () => void;
   failPayment: () => void;
-  backToPaymentMethod: () => void;
   reset: () => void;
 };
 
@@ -46,9 +31,6 @@ const initialState = {
   session: null,
   phoneNumber: '',
   amount: '',
-  paymentMethod: null,
-  paymentTelco: null,
-  mobileNumber: '',
   error: null,
 };
 
@@ -85,50 +67,21 @@ export const useAirtimeTopupFlowStore = create<AirtimeTopupState>((set, get) => 
   },
 
   editDetails: () => set({step: 'details', error: null}),
-  confirmReview: () => set({step: 'paymentMethod', error: null}),
-  backToReview: () => set({step: 'review', error: null}),
-
-  selectPaymentMethod: paymentMethod => {
-    set({
-      paymentMethod,
-      step: paymentMethod === 'mobileMoney' ? 'mobileMoneyDetails' : 'cardRedirect',
-      error: null,
-    });
-  },
-
-  selectPaymentTelco: paymentTelco => set({paymentTelco, error: null}),
-  setMobileNumber: mobileNumber => set({mobileNumber, error: null}),
-
-  completeMobileMoneyDetails: () => {
-    const {paymentTelco, mobileNumber} = get();
-
-    if (!paymentTelco) {
-      set({error: 'Choose a mobile money provider'});
-      return;
-    }
-
-    if (!hasValidPhone(mobileNumber)) {
-      set({error: 'Enter mobile number'});
-      return;
-    }
-
-    set({step: 'paymentConfirmation', error: null});
-  },
-
-  verifyPayment: () => set({step: 'success', error: null}),
-  failPayment: () => set({step: 'failed', error: 'Payment could not be verified'}),
-  backToPaymentMethod: () => set({step: 'paymentMethod', error: null}),
+  confirmReview: () => set({step: 'processing', error: null}),
+  completePayment: () => set({step: 'success', error: null}),
+  failPayment: () => set({step: 'failed', error: 'Payment could not be completed'}),
   reset: () => set({...initialState}),
 }));
 
 export const selectAirtimeFinancials = (state: AirtimeTopupState) => {
   const amount = Number(state.amount) || 0;
-  const fee = state.session?.provider.rules.processingFee ?? 0.5;
+  const fee = amount * 0.01; // 1% fee
+  const total = amount + fee;
 
   return {
     amount,
     fee,
-    total: amount + fee,
+    total,
     currency: state.session?.provider.rules.currency ?? 'USD',
   };
 };

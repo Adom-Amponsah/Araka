@@ -2,7 +2,6 @@ import * as React from 'react';
 import {
   Image,
   Pressable,
-  SafeAreaView,
   ScrollView,
   Share,
   StyleSheet,
@@ -11,6 +10,7 @@ import {
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useAppStore} from '@shared/store/appStore';
 import {getSystemFont} from '@styles/typography';
@@ -35,7 +35,7 @@ export function MyQrScreen() {
   };
 
   return (
-    <View style={styles.root}>
+    <SafeAreaView style={styles.root}>
       <View style={[styles.header, {paddingTop: Math.max(insets.top, 20) + 16}]}>
         <Pressable onPress={() => navigation.goBack()} style={styles.iconBtn}>
           <Ionicons name="arrow-back" size={26} color={DARK} />
@@ -74,7 +74,7 @@ export function MyQrScreen() {
           <Text style={styles.ctaText}>Share QR Code</Text>
         </Pressable>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 

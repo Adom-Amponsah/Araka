@@ -3,7 +3,6 @@ import {
   Animated,
   Image,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -11,6 +10,7 @@ import {
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Svg, {Defs, LinearGradient, Rect, Stop} from 'react-native-svg';
 import {BurgerMenu} from '@features/home/components/BurgerMenu';

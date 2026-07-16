@@ -2,7 +2,7 @@ import * as React from 'react';
 import {Pressable, StyleSheet, Text, View} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {getSystemFont} from '@styles/typography';
-import {AirtimeTopupFlow} from '../flows/AirtimeTopupFlow';
+import {VodacomAirtimeFlow} from '../flows/VodacomAirtimeFlow';
 import {TransferFlow} from '../flows/TransferFlow';
 import {useServiceSessionStore} from '../store/serviceSessionStore';
 
@@ -29,7 +29,7 @@ export function ServiceFlowHost() {
 
   switch (activeSession.flowId) {
     case 'airtimeTopup':
-      return <AirtimeTopupFlow />;
+      return <VodacomAirtimeFlow />;
     case 'transfer':
       return <TransferFlow />;
     default:
