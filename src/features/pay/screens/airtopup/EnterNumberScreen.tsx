@@ -20,7 +20,6 @@ export function EnterNumberScreen() {
   const navigation = useNavigation<NavigationProp>();
   const {phoneNumber, networkProvider, setPhoneNumber, setNetworkProvider} = 
     useAirtimeStore();
-
   const canProceed = phoneNumber.length >= 10 && networkProvider;
 
   return (
