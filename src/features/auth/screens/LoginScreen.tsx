@@ -19,12 +19,19 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import {getSystemFont} from '@styles/typography';
 
 interface LoginFormData {
-  email: string;
+  phone: string;
   password: string;
 }
 
-// Animated input that lifts its label and glows on focus
-function FloatingInput({
+const SLATE = '#3D4A5C';
+const CORAL = '#F27649';
+const DARK = '#1A2535';
+const GRAY = '#6B7280';
+const INPUT_BORDER = '#E5E7EB';
+const CARD_RADIUS = 28;
+const {height} = Dimensions.get('window');
+
+function StaticInput({
   label,
   icon,
   value,
@@ -33,6 +40,7 @@ function FloatingInput({
   keyboardType,
   autoCapitalize,
   error,
+  rightElement,
 }: {
   label: string;
   icon: string;
@@ -42,67 +50,26 @@ function FloatingInput({
   keyboardType?: any;
   autoCapitalize?: any;
   error?: string;
+  rightElement?: React.ReactNode;
 }) {
   const [focused, setFocused] = React.useState(false);
-  const labelAnim = React.useRef(new Animated.Value(value ? 1 : 0)).current;
-  const glowAnim = React.useRef(new Animated.Value(0)).current;
-
-  const hasContent = !!value;
-
-  React.useEffect(() => {
-    Animated.parallel([
-      Animated.timing(labelAnim, {
-        toValue: focused || hasContent ? 1 : 0,
-        duration: 180,
-        easing: Easing.out(Easing.quad),
-        useNativeDriver: false,
-      }),
-      Animated.timing(glowAnim, {
-        toValue: focused ? 1 : 0,
-        duration: 200,
-        easing: Easing.out(Easing.quad),
-        useNativeDriver: false,
-      }),
-    ]).start();
-  }, [focused, hasContent]);
-
-  const labelTop = labelAnim.interpolate({inputRange: [0, 1], outputRange: [18, 6]});
-  const labelSize = labelAnim.interpolate({inputRange: [0, 1], outputRange: [15, 11]});
-  const labelColor = labelAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['#9CA3AF', focused ? '#F27649' : '#9CA3AF'],
-  });
-  const borderColor = glowAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['#E8EDF2', '#F27649'],
-  });
 
   return (
-    <View style={floatStyles.container}>
-      <Animated.View
+    <View style={inputStyles.container}>
+      <Text style={inputStyles.label}>{label}</Text>
+      <View
         style={[
-          floatStyles.field,
-          {borderColor},
+          inputStyles.field,
+          {borderColor: focused ? CORAL : INPUT_BORDER},
         ]}>
-        {/* Icon */}
-        <View style={floatStyles.iconWrap}>
+        <View style={inputStyles.iconWrap}>
           <Ionicons
             name={icon}
             size={18}
-            color={focused ? '#F27649' : '#C4CDD8'}
+            color={focused ? CORAL : '#C4CDD8'}
           />
         </View>
 
-        {/* Floating label */}
-        <Animated.Text
-          style={[
-            floatStyles.label,
-            {top: labelTop, fontSize: labelSize, color: labelColor},
-          ]}>
-          {label}
-        </Animated.Text>
-
-        {/* Input */}
         <TextInput
           value={value}
           onChangeText={onChange}
@@ -111,66 +78,61 @@ function FloatingInput({
           secureTextEntry={secureTextEntry}
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize || 'none'}
-          style={floatStyles.input}
-          selectionColor="#F27649"
+          style={inputStyles.input}
+          selectionColor={CORAL}
+          placeholderTextColor="#9CA3AF"
         />
-      </Animated.View>
+
+        {rightElement}
+      </View>
 
       {error && (
-        <View style={floatStyles.errorRow}>
+        <View style={inputStyles.errorRow}>
           <Ionicons name="alert-circle-outline" size={13} color="#EF4444" />
-          <Text style={floatStyles.errorText}>{error}</Text>
+          <Text style={inputStyles.errorText}>{error}</Text>
         </View>
       )}
     </View>
   );
 }
 
-const floatStyles = StyleSheet.create({
+const inputStyles = StyleSheet.create({
   container: {
     marginBottom: 20,
   },
+  label: {
+    color: DARK,
+    fontSize: 14,
+    fontWeight: '600',
+    fontFamily: getSystemFont('medium'),
+    marginBottom: 8,
+  },
   field: {
-    backgroundColor: '#F7F9FC',
-    borderWidth: 1.5,
-    borderRadius: 14,
-    height: 62,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderRadius: 12,
+    height: 52,
     flexDirection: 'row',
-    alignItems: 'flex-end',
-    paddingBottom: 10,
-    paddingRight: 16,
-    overflow: 'hidden',
-    // Subtle inset shadow via elevation trick on Android; iOS shadow
-    shadowColor: '#B8C4D0',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
-    elevation: 1,
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    gap: 10,
   },
   iconWrap: {
-    width: 48,
+    width: 24,
     alignItems: 'center',
-    paddingBottom: 2,
-  },
-  label: {
-    position: 'absolute',
-    left: 48,
-    fontFamily: getSystemFont('medium'),
-    letterSpacing: 0.2,
+    justifyContent: 'center',
   },
   input: {
     flex: 1,
     fontSize: 15,
-    color: '#1A2535',
-    paddingTop: 18,
+    color: DARK,
     fontFamily: getSystemFont(),
-    letterSpacing: 0.3,
+    padding: 0,
   },
   errorRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 5,
-    marginLeft: 12,
+    marginTop: 6,
     gap: 4,
   },
   errorText: {
@@ -222,11 +184,13 @@ export function LoginScreen() {
     ]).start();
   }, []);
 
+  const [showPassword, setShowPassword] = React.useState(false);
+
   const onSubmit = (data: LoginFormData) => {
     console.log('Login data:', data);
     // TODO: Replace with actual API call
     loginSuccess(
-      {id: 'temp-id', email: data.email},
+      {id: 'temp-id', phone: data.phone},
       'temp-token'
     );
   };
@@ -244,37 +208,16 @@ export function LoginScreen() {
         automaticallyAdjustKeyboardInsets={true}>
 
         {/* ── HEADER ZONE ── */}
-        <View
+        <Animated.View
           style={[
             styles.header,
             {paddingTop: Math.max(insets.top, 20) + 32},
           ]}>
-
-          {/* Geometric accent — top-right corner decorative ring */}
-          <View style={styles.ringDecor} />
-          <View style={styles.ringDecorInner} />
-
-          {/* Monogram badge */}
-          {/* <Animated.View style={[styles.monogramWrap, {opacity: headerFade}]}>
-            <Text style={styles.monogram}>A</Text>
-          </Animated.View> */}
-
-          <Animated.View style={{opacity: headerFade}}>
-            {/* <Text style={styles.eyebrow}>ARAKA FINANCE</Text> */}
-            <Text style={styles.headline}>Welcome{'\n'}back.</Text>
-            <Text style={styles.subline}>Sign in to your account</Text>
-          </Animated.View>
-        </View>
+          <Text style={styles.headline}>Login to your{'\n'}account</Text>
+          <Text style={styles.subline}>Welcome back to ARAKA!</Text>
+        </Animated.View>
 
         {/* ── CARD ── */}
-        {/* Shadow layer behind the card to give curve depth */}
-        <Animated.View
-          style={[
-            styles.cardShadowLayer,
-            {opacity: cardFade},
-          ]}
-        />
-
         <Animated.View
           style={[
             styles.card,
@@ -283,101 +226,105 @@ export function LoginScreen() {
               opacity: cardFade,
             },
           ]}>
-
-          {/* Thin gold/coral rule at card top */}
-          <View style={styles.cardRule} />
-
-          <Text style={styles.cardTitle}>Sign in</Text>
-
-          <Controller
-            control={control}
-            name="email"
-            rules={{
-              required: 'Email is required',
-              pattern: {
-                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                message: 'Enter a valid email address',
-              },
-            }}
-            render={({field: {onChange, value}}) => (
-              <FloatingInput
-                label="Email address"
-                icon="mail-outline"
-                value={value || ''}
-                onChange={onChange}
-                keyboardType="email-address"
-                error={errors.email?.message}
+          <ScrollView
+            style={styles.cardScroll}
+            contentContainerStyle={styles.cardScrollContent}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
+            bounces={false}>
+            <View style={styles.form}>
+              <Controller
+                control={control}
+                name="phone"
+                rules={{
+                  required: 'Phone number is required',
+                  minLength: {value: 8, message: 'Enter a valid phone number'},
+                }}
+                render={({field: {onChange, value}}) => (
+                  <View style={inputStyles.container}>
+                    <Text style={inputStyles.label}>Phone Number</Text>
+                    <View style={[
+                      inputStyles.field,
+                      {borderColor: value ? CORAL : INPUT_BORDER},
+                    ]}>
+                      <Text style={styles.flagIcon}>🇨🇩</Text>
+                      <TextInput
+                        value={value || ''}
+                        onChangeText={onChange}
+                        placeholder="+243 ... ... ..."
+                        placeholderTextColor="#9CA3AF"
+                        keyboardType="phone-pad"
+                        style={inputStyles.input}
+                        selectionColor={CORAL}
+                      />
+                    </View>
+                    {errors.phone?.message && (
+                      <View style={inputStyles.errorRow}>
+                        <Ionicons name="alert-circle-outline" size={13} color="#EF4444" />
+                        <Text style={inputStyles.errorText}>{errors.phone.message}</Text>
+                      </View>
+                    )}
+                  </View>
+                )}
               />
-            )}
-          />
 
-          <Controller
-            control={control}
-            name="password"
-            rules={{
-              required: 'Password is required',
-              minLength: {value: 6, message: 'At least 6 characters'},
-            }}
-            render={({field: {onChange, value}}) => (
-              <FloatingInput
-                label="Password"
-                icon="lock-closed-outline"
-                value={value || ''}
-                onChange={onChange}
-                secureTextEntry
-                error={errors.password?.message}
+              <Controller
+                control={control}
+                name="password"
+                rules={{
+                  required: 'Password is required',
+                  minLength: {value: 6, message: 'At least 6 characters'},
+                }}
+                render={({field: {onChange, value}}) => (
+                  <StaticInput
+                    label="Password"
+                    icon="key-outline"
+                    value={value || ''}
+                    onChange={onChange}
+                    secureTextEntry={!showPassword}
+                    error={errors.password?.message}
+                    rightElement={(
+                      <Pressable onPress={() => setShowPassword(s => !s)}>
+                        <Ionicons
+                          name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                          size={20}
+                          color="#9CA3AF"
+                        />
+                      </Pressable>
+                    )}
+                  />
+                )}
               />
-            )}
-          />
+            </View>
 
-          {/* Forgot password */}
-          <Pressable style={styles.forgotWrap}>
-            <Text style={styles.forgotText}>Forgot password?</Text>
-          </Pressable>
+            <View>
+              {/* CTA */}
+              <Pressable
+                onPress={handleSubmit(onSubmit)}
+                style={({pressed}) => [
+                  styles.ctaButton,
+                  pressed && styles.ctaButtonPressed,
+                ]}>
+                <Text style={styles.ctaText}>Login</Text>
+              </Pressable>
 
-          {/* CTA */}
-          <Pressable
-            onPress={handleSubmit(onSubmit)}
-            style={({pressed}) => [
-              styles.ctaButton,
-              pressed && styles.ctaButtonPressed,
-            ]}>
-            <Text style={styles.ctaText}>Sign In</Text>
-            {/* Arrow accent */}
-            {/* <View style={styles.ctaArrow}>
-              <Ionicons name="arrow-forward" size={18} color="#F27649" />
-            </View> */}
-          </Pressable>
+              {/* Footer */}
+              <View style={styles.footer}>
+                <Text style={styles.footerText}>No account yet? </Text>
+                <Pressable onPress={() => startSignup()}>
+                  <Text style={styles.footerLink}>Sign Up</Text>
+                </Pressable>
+              </View>
 
-          {/* Divider */}
-          <View style={styles.divRow}>
-            <View style={styles.divLine} />
-            <Text style={styles.divText}>New to ARAKA?</Text>
-            <View style={styles.divLine} />
-          </View>
-
-          {/* Sign up ghost button */}
-          <Pressable
-            onPress={() => startSignup()}
-            style={({pressed}) => [
-              styles.ghostButton,
-              pressed && {opacity: 0.7},
-            ]}>
-            <Text style={styles.ghostText}>Create an account</Text>
-          </Pressable>
-
-          {/* Bottom safe area padding */}
-          <View style={{height: Math.max(insets.bottom, 24)}} />
+              {/* Bottom safe area padding */}
+              <View style={{height: Math.max(insets.bottom, 24)}} />
+            </View>
+          </ScrollView>
         </Animated.View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
-
-const SLATE = '#3D4A5C';   // slightly deeper than original for contrast
-const CORAL = '#F27649';
-const CARD_RADIUS = 36;
-const {height} = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   root: {
@@ -392,214 +339,85 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: SLATE,
     paddingHorizontal: 28,
-    paddingBottom: 56, // extra so card curve feels spacious
-  },
-  ringDecor: {
-    position: 'absolute',
-    top: 24,
-    right: -40,
-    width: 160,
-    height: 160,
-    borderRadius: 80,
-    borderWidth: 28,
-    borderColor: 'rgba(242, 118, 73, 0.12)',
-  },
-  ringDecorInner: {
-    position: 'absolute',
-    top: 60,
-    right: -10,
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    borderWidth: 1.5,
-    borderColor: 'rgba(242, 118, 73, 0.25)',
-  },
-  monogramWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: CORAL,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 24,
-    // small shadow so it lifts off the header
-    shadowColor: CORAL,
-    shadowOffset: {width: 0, height: 4},
-    shadowOpacity: 0.4,
-    shadowRadius: 10,
-    elevation: 8,
-  },
-  monogram: {
-    color: '#FFF',
-    fontSize: 22,
-    fontWeight: '700',
-    fontFamily: getSystemFont('medium'),
-    letterSpacing: 1,
-  },
-  eyebrow: {
-    color: 'rgba(255,255,255,0.4)',
-    fontSize: 11,
-    letterSpacing: 3,
-    fontFamily: getSystemFont(),
-    fontWeight: '600',
-    marginBottom: 10,
-    textTransform: 'uppercase',
+    paddingBottom: 40,
   },
   headline: {
     color: '#FFFFFF',
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: '700',
     fontFamily: getSystemFont('medium'),
-    lineHeight: 36,
-    letterSpacing: 0.1,
-    marginBottom: 10,
+    lineHeight: 34,
+    textAlign: 'center',
+    marginBottom: 8,
   },
   subline: {
-    color: 'rgba(255,255,255,0.45)',
+    color: 'rgba(255,255,255,0.55)',
     fontSize: 14,
     fontFamily: getSystemFont(),
-    letterSpacing: 0.3,
-  },
-
-  // ── Card shadow layer: sits BEHIND the card to cast shadow onto header ──
-  cardShadowLayer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 100,
-    // We use the card's border-radius translated upward
-    borderTopLeftRadius: CARD_RADIUS,
-    borderTopRightRadius: CARD_RADIUS,
-    backgroundColor: '#FFFFFF',
-    // The actual shadow
-    shadowColor: '#000000',
-    shadowOffset: {width: 0, height: -12},
-    shadowOpacity: 0.22,
-    shadowRadius: 24,
-    elevation: 20,
+    textAlign: 'center',
+    letterSpacing: 0.2,
   },
 
   // ── Card ──
   card: {
+    flex: 1,
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: CARD_RADIUS,
     borderTopRightRadius: CARD_RADIUS,
+    paddingTop: 36,
+  },
+  cardScroll: {
+    flex: 1,
+  },
+  cardScrollContent: {
+    flexGrow: 1,
+    justifyContent: 'space-between',
     paddingHorizontal: 28,
-    paddingTop: 28,
-    paddingBottom: 200,
-    marginTop: -CARD_RADIUS, // pulls card up to overlap header curve
-    minHeight: height,
-    // Shadow that peeks above the curve
-    shadowColor: '#1A2535',
-    shadowOffset: {width: 0, height: -8},
-    shadowOpacity: 0.18,
-    shadowRadius: 20,
-    elevation: 16,
   },
-  cardRule: {
-    width: 40,
-    height: 3,
-    backgroundColor: CORAL,
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginBottom: 24,
-    opacity: 0.7,
+  form: {
+    gap: 4,
   },
-  cardTitle: {
-    color: '#1A2535',
-    fontSize: 24,
-    fontWeight: '700',
-    fontFamily: getSystemFont('medium'),
-    letterSpacing: -0.3,
-    marginBottom: 28,
-  },
-
-  // ── Forgot ──
-  forgotWrap: {
-    alignSelf: 'flex-end',
-    marginTop: -8,
-    marginBottom: 28,
-    paddingVertical: 4,
-  },
-  forgotText: {
-    color: CORAL,
-    fontSize: 13,
-    fontFamily: getSystemFont(),
-    letterSpacing: 0.2,
+  flagIcon: {
+    fontSize: 18,
+    marginRight: 8,
   },
 
   // ── CTA ──
   ctaButton: {
-    backgroundColor: '#F27649',
+    backgroundColor: CORAL,
     borderRadius: 14,
-    paddingVertical: 16,
-    paddingHorizontal: 28,
-    flexDirection: 'row',
+    height: 52,
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: 8,
     marginBottom: 28,
-    shadowColor: '#1A2535',
-    shadowOffset: {width: 0, height: 6},
-    shadowOpacity: 0.28,
-    shadowRadius: 14,
-    elevation: 8,
   },
   ctaButtonPressed: {
-    backgroundColor: '#263347',
-    shadowOpacity: 0.1,
-    elevation: 2,
+    opacity: 0.9,
   },
   ctaText: {
     color: '#FFFFFF',
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '700',
     fontFamily: getSystemFont(),
-    letterSpacing: 0.5,
-    flex: 1,
-    textAlign: 'center',
-  },
-  ctaArrow: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-    backgroundColor: 'rgba(242, 118, 73, 0.15)',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 
-  // ── Divider ──
-  divRow: {
+  // ── Footer ──
+  footer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
-    gap: 10,
+    justifyContent: 'center',
+    marginBottom: 12,
   },
-  divLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#EDF0F5',
-  },
-  divText: {
-    color: '#9CA3AF',
-    fontSize: 12,
+  footerText: {
+    color: GRAY,
+    fontSize: 14,
     fontFamily: getSystemFont(),
-    letterSpacing: 0.3,
   },
-
-  // ── Ghost button ──
-  ghostButton: {
-    borderWidth: 1.5,
-    borderColor: '#E8EDF2',
-    borderRadius: 14,
-    paddingVertical: 16,
-    alignItems: 'center',
-  },
-  ghostText: {
-    color: '#3D4A5C',
-    fontSize: 15,
-    fontWeight: '600',
+  footerLink: {
+    color: CORAL,
+    fontSize: 14,
+    fontWeight: '700',
     fontFamily: getSystemFont(),
-    letterSpacing: 0.3,
   },
 });

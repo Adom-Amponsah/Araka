@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Svg, {Defs, LinearGradient, Rect, Stop} from 'react-native-svg';
 import {BurgerMenu} from '@features/home/components/BurgerMenu';
@@ -75,6 +74,11 @@ export function SettingsScreen() {
     }
   };
 
+  const logout = useAppStore((state) => state.logout);
+  const handleLogout = () => {
+    logout();
+  };
+
   const renderItem = (item: {label: string; icon: string}) => (
     <Pressable key={item.label} onPress={() => handleItemPress(item.label)} style={styles.row}>
       <Ionicons name={item.icon as any} size={18} color={CORAL} />
@@ -84,7 +88,7 @@ export function SettingsScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.root}>
+    <View style={styles.root}>
       <View style={styles.container}>
         <View style={[styles.header, {height: HEADER_HEIGHT + insets.top, paddingTop: insets.top}]}>
           <Svg width="100%" height="100%" style={StyleSheet.absoluteFill}>
@@ -129,12 +133,22 @@ export function SettingsScreen() {
             styles.body,
             {opacity: fade, transform: [{translateY: slide}]},
           ]}>
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.bodyContent}>
-            <Text style={styles.sectionTitle}>Profile</Text>
-            <View style={styles.section}>{PROFILE_ITEMS.map(renderItem)}</View>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            style={styles.bodyScroll}
+            contentContainerStyle={[styles.bodyContent, {paddingBottom: Math.max(insets.bottom, 24)}]}>
+            <View>
+              <Text style={styles.sectionTitle}>Profile</Text>
+              <View style={styles.section}>{PROFILE_ITEMS.map(renderItem)}</View>
 
-            <Text style={styles.sectionTitle}>Security</Text>
-            <View style={styles.section}>{SECURITY_ITEMS.map(renderItem)}</View>
+              <Text style={styles.sectionTitle}>Security</Text>
+              <View style={styles.section}>{SECURITY_ITEMS.map(renderItem)}</View>
+            </View>
+
+            <Pressable onPress={handleLogout} style={styles.logoutButton}>
+              <Ionicons name="log-out-outline" size={18} color="#EF4444" />
+              <Text style={styles.logoutText}>Log out</Text>
+            </Pressable>
           </ScrollView>
         </Animated.View>
       </View>
@@ -150,17 +164,18 @@ export function SettingsScreen() {
         visible={ribVisible}
         onClose={() => setRibVisible(false)}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: CORAL,
+    backgroundColor: '#FFFFFF',
   },
   container: {
     flex: 1,
+    backgroundColor: CORAL,
   },
   header: {
     position: 'relative',
@@ -201,10 +216,14 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
     marginTop: -28,
     paddingTop: 16,
-    paddingHorizontal: 24,
+  },
+  bodyScroll: {
+    flex: 1,
   },
   bodyContent: {
-    paddingBottom: 32,
+    flexGrow: 1,
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
   },
   profile: {
     flex: 1,
@@ -269,6 +288,24 @@ const styles = StyleSheet.create({
     flex: 1,
     color: DARK,
     fontSize: 14,
+    fontWeight: '700',
+    fontFamily: getSystemFont('bold'),
+  },
+  logoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 24,
+    paddingVertical: 16,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#FEE2E2',
+    backgroundColor: '#FEF2F2',
+  },
+  logoutText: {
+    color: '#EF4444',
+    fontSize: 15,
     fontWeight: '700',
     fontFamily: getSystemFont('bold'),
   },
