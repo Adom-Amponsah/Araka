@@ -8,7 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export type AppFlow = 'booting' | 'onboarding' | 'auth' | 'main';
 
-export type OnboardingStep = 'loadingSplash' | 'slides';
+export type OnboardingStep = 'loadingSplash';
 
 export type AuthStep =
   | 'authHome'
@@ -148,7 +148,11 @@ export const useAppStore = create<AppStore>()(
 
 
       // Domain actions (public)
-      completeLoadingSplash: () => set({onboardingStep: 'slides'}),
+      completeLoadingSplash: () =>
+        set({
+          appFlow: 'auth',
+          authStep: 'authHome',
+        }),
       
       completeOnboarding: () =>
         set({
@@ -230,7 +234,7 @@ export const useAppStore = create<AppStore>()(
       previewOnboarding: () =>
         set({
           appFlow: 'onboarding',
-          onboardingStep: 'slides',
+          onboardingStep: 'loadingSplash',
         }),
 
       // Return from preview back to main
