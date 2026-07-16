@@ -6,6 +6,8 @@ import {
   StyleSheet,
   Text,
   Image,
+  PermissionsAndroid,
+  Platform,
   Alert,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -89,10 +91,31 @@ export function IdUploadScreen() {
       Alert.alert('Error', 'Could not open photo library.');
     }
   };
+  const requestCameraPermission = async () => {
+  if (Platform.OS === 'android') {
+    const granted = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.CAMERA,
+    );
+
+    return granted === PermissionsAndroid.RESULTS.GRANTED;
+  }
+
+  return true;
+};
 
   const handleCamera = async () => {
-    try {
-      const result = await launchCamera({
+  const permission = await requestCameraPermission();
+
+  if (!permission) {
+    Alert.alert(
+      'Permission Required',
+      'Camera permission is needed to take a selfie.',
+    );
+    return;
+  }
+
+  try {
+    const result = await launchCamera({
         mediaType: 'photo',
         includeBase64: false,
       });
