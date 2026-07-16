@@ -7,6 +7,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
@@ -16,6 +17,13 @@ import {BurgerMenu} from '@features/home/components/BurgerMenu';
 import {selectUnreadCount, useNotificationStore} from '@features/notifications/store/notificationStore';
 import {useAppStore} from '@shared/store/appStore';
 import {getSystemFont} from '@styles/typography';
+import {TopupFlow} from '../flows/TopupFlow';
+import {SendFlow} from '../flows/SendFlow';
+import {WithdrawFlow} from '../flows/WithdrawFlow';
+import {useTopupFlowStore} from '../store/topupFlowStore';
+import {useSendFlowStore} from '../store/sendFlowStore';
+import {useWithdrawFlowStore} from '../store/withdrawFlowStore';
+import {BottomSheet} from '../flows/components/BottomSheet';
 
 const {width} = Dimensions.get('window');
 
@@ -31,11 +39,18 @@ const WALLETS = [
   {id: 'cdf', currency: 'CDF', balance: '34,820,000', tint: '#536177'},
 ];
 
-const ACTIONS = [
+const PRIMARY_ACTIONS = [
   {label: 'Top Up', icon: 'add-outline'},
   {label: 'Send', icon: 'paper-plane-outline'},
   {label: 'Withdraw', icon: 'arrow-down-outline'},
-  {label: 'More', icon: 'ellipsis-horizontal-outline'},
+  {label: 'Add wallet', icon: 'wallet-outline'},
+];
+
+const SECONDARY_ACTIONS = [
+  {label: 'Add Card', icon: 'card-outline'},
+  {label: 'Payment Link', icon: 'link-outline'},
+  {label: 'Pay Bills', icon: 'receipt-outline'},
+  {label: 'Reduce', icon: 'chevron-up-outline'},
 ];
 
 const TRANSACTIONS = [
@@ -81,23 +96,50 @@ const TRANSACTIONS = [
 ];
 
 // Action strip — circular buttons on the orange hero
-function ActionStrip() {
-  const scales = ACTIONS.map(() => React.useRef(new Animated.Value(1)).current);
+function ActionStrip({showMore, onToggleMore, onTopUp, onSend, onWithdraw, onPayBills, onAddCard, onAddWallet, onPaymentLink}: {showMore: boolean; onToggleMore: () => void; onTopUp: () => void; onSend: () => void; onWithdraw: () => void; onPayBills: () => void; onAddCard: () => void; onAddWallet: () => void; onPaymentLink: () => void}) {
+  const actions = showMore ? [...PRIMARY_ACTIONS, ...SECONDARY_ACTIONS] : [...PRIMARY_ACTIONS.slice(0, 3), {label: 'More', icon: 'ellipsis-horizontal-outline'}];
+  
+  // Fixed array of 8 scales to avoid hooks violation
+  const scales = React.useMemo(() => 
+    Array.from({length: 8}, () => new Animated.Value(1)),
+    []
+  );
 
   const pi = (i: number) =>
     Animated.spring(scales[i], {toValue: 0.9, damping: 14, stiffness: 280, useNativeDriver: true}).start();
   const po = (i: number) =>
     Animated.spring(scales[i], {toValue: 1, damping: 10, stiffness: 200, useNativeDriver: true}).start();
 
-  const tints = ['#D6653D', '#E07C55', '#EA9270', '#F5A98C'];
+  const tints = ['#D6653D', '#E07C55', '#EA9270', '#F5A98C', '#D6653D', '#E07C55', '#EA9270', '#F5A98C'];
+
+  const handlePress = (label: string) => {
+    if (label === 'More' || label === 'Reduce') {
+      onToggleMore();
+    } else if (label === 'Top Up') {
+      onTopUp();
+    } else if (label === 'Send') {
+      onSend();
+    } else if (label === 'Withdraw') {
+      onWithdraw();
+    } else if (label === 'Pay Bills') {
+      onPayBills();
+    } else if (label === 'Add Card') {
+      onAddCard();
+    } else if (label === 'Add wallet') {
+      onAddWallet();
+    } else if (label === 'Payment Link') {
+      onPaymentLink();
+    }
+  };
 
   return (
     <View style={as.grid}>
-      {ACTIONS.map((action, i) => (
-        <Animated.View key={action.label} style={{transform: [{scale: scales[i]}]}}>
+      {actions.map((action, i) => (
+        <Animated.View key={`${action.label}-${i}`} style={{transform: [{scale: scales[i]}]}}>
           <Pressable
             onPressIn={() => pi(i)}
             onPressOut={() => po(i)}
+            onPress={() => handlePress(action.label)}
             style={as.tile}>
             <View style={[as.pillIcon, {backgroundColor: tints[i]}]}>
               <Ionicons name={action.icon as any} size={20} color="#FFFFFF" />
@@ -113,8 +155,10 @@ function ActionStrip() {
 const as = StyleSheet.create({
   grid: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
     paddingHorizontal: 12,
+    gap: 16,
   },
   tile: {
     alignItems: 'center',
@@ -216,6 +260,182 @@ const tw = StyleSheet.create({
   amount: {fontSize: 14, fontWeight: '700', fontFamily: getSystemFont('bold'), letterSpacing: 0.1},
 });
 
+// ─────────────────────────────────────────────
+// Add Card Sheet
+// ─────────────────────────────────────────────
+function AddCardSheet({visible, onClose}: {visible: boolean; onClose: () => void}) {
+  const [cardNumber, setCardNumber] = React.useState('');
+  const [expiry, setExpiry] = React.useState('');
+  const [cvv, setCvv] = React.useState('');
+  const [nickname, setNickname] = React.useState('');
+
+  const formatCardNumber = (text: string) => {
+    const digits = text.replace(/\D/g, '').slice(0, 16);
+    return digits.replace(/(.{4})/g, '$1 ').trim();
+  };
+
+  const formatExpiry = (text: string) => {
+    const digits = text.replace(/\D/g, '').slice(0, 4);
+    if (digits.length >= 3) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+    return digits;
+  };
+
+  return (
+    <BottomSheet visible={visible} onClose={onClose}>
+      <Text style={ac.title}>Add a Card</Text>
+      <Text style={ac.sub}>Save these details to make future payments</Text>
+
+      <View style={ac.form}>
+        <View style={ac.inputRow}>
+          <Ionicons name="card-outline" size={20} color={CORAL} style={{marginLeft: 4}} />
+          <TextInput
+            style={ac.input}
+            value={cardNumber}
+            onChangeText={(text) => setCardNumber(formatCardNumber(text))}
+            placeholder="Card number"
+            placeholderTextColor="#9CA3AF"
+            keyboardType="numeric"
+            maxLength={19}
+          />
+        </View>
+
+        <View style={ac.row}>
+          <View style={[ac.inputRow, {flex: 1}]}>
+            <TextInput
+              style={ac.input}
+              value={expiry}
+              onChangeText={(text) => setExpiry(formatExpiry(text))}
+              placeholder="MM/YY"
+              placeholderTextColor="#9CA3AF"
+              keyboardType="numeric"
+              maxLength={5}
+            />
+          </View>
+          <View style={[ac.inputRow, {flex: 1}]}>
+            <TextInput
+              style={ac.input}
+              value={cvv}
+              onChangeText={(text) => setCvv(text.replace(/\D/g, '').slice(0, 4))}
+              placeholder="CVV"
+              placeholderTextColor="#9CA3AF"
+              keyboardType="numeric"
+              maxLength={4}
+              secureTextEntry
+            />
+          </View>
+        </View>
+
+        <View style={ac.inputRow}>
+          <TextInput
+            style={ac.input}
+            value={nickname}
+            onChangeText={setNickname}
+            placeholder="Nickname (optional)"
+            placeholderTextColor="#9CA3AF"
+          />
+        </View>
+      </View>
+
+      <Pressable onPress={onClose} style={ac.btn}>
+        <Text style={ac.btnText}>Save</Text>
+      </Pressable>
+
+      <Pressable onPress={onClose} style={ac.skipBtn}>
+        <Text style={ac.skipText}>Not Now</Text>
+      </Pressable>
+    </BottomSheet>
+  );
+}
+
+const ac = StyleSheet.create({
+  title: {fontSize: 22, fontWeight: '800', fontFamily: getSystemFont('bold'), color: DARK, marginBottom: 4},
+  sub: {fontSize: 14, fontFamily: SANS, color: '#8A94A6', marginBottom: 24},
+  form: {gap: 14, marginBottom: 24},
+  row: {flexDirection: 'row', gap: 12},
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 14,
+    gap: 8,
+  },
+  input: {flex: 1, fontSize: 15, fontFamily: SANS, color: DARK, padding: 0},
+  btn: {
+    backgroundColor: CORAL,
+    paddingVertical: 16,
+    borderRadius: 14,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  btnText: {color: '#FFFFFF', fontSize: 15, fontWeight: '700', fontFamily: getSystemFont('bold')},
+  skipBtn: {paddingVertical: 12, alignItems: 'center'},
+  skipText: {fontSize: 14, fontWeight: '700', fontFamily: getSystemFont('bold'), color: '#8A94A6'},
+});
+
+// ─────────────────────────────────────────────
+// Add Wallet Sheet
+// ─────────────────────────────────────────────
+function AddWalletSheet({visible, onClose}: {visible: boolean; onClose: () => void}) {
+  const [phoneNumber, setPhoneNumber] = React.useState('');
+  const [nickname, setNickname] = React.useState('');
+
+  return (
+    <BottomSheet visible={visible} onClose={onClose}>
+      <Text style={ac.title}>Add a Wallet</Text>
+      <Text style={ac.sub}>Save these details to make future payments</Text>
+
+      <View style={ac.form}>
+        <View style={aw.fieldWrap}>
+          <Text style={aw.label}>Phone Number</Text>
+          <View style={ac.inputRow}>
+            <Ionicons name="phone-outline" size={20} color={CORAL} style={{marginLeft: 4}} />
+            <TextInput
+              style={ac.input}
+              value={phoneNumber}
+              onChangeText={setPhoneNumber}
+              placeholder="Enter phone number"
+              placeholderTextColor="#9CA3AF"
+              keyboardType="phone-pad"
+            />
+          </View>
+        </View>
+
+        <View style={aw.fieldWrap}>
+          <Text style={aw.label}>Nickname <Text style={aw.optional}>(optional)</Text></Text>
+          <View style={ac.inputRow}>
+            <Ionicons name="person-outline" size={20} color={CORAL} style={{marginLeft: 4}} />
+            <TextInput
+              style={ac.input}
+              value={nickname}
+              onChangeText={setNickname}
+              placeholder="Enter nickname"
+              placeholderTextColor="#9CA3AF"
+            />
+          </View>
+        </View>
+      </View>
+
+      <Pressable onPress={onClose} style={ac.btn}>
+        <Text style={ac.btnText}>Save</Text>
+      </Pressable>
+
+      <Pressable onPress={onClose} style={ac.skipBtn}>
+        <Text style={ac.skipText}>Not Now</Text>
+      </Pressable>
+    </BottomSheet>
+  );
+}
+
+const aw = StyleSheet.create({
+  fieldWrap: {gap: 6},
+  label: {fontSize: 13, fontWeight: '600', fontFamily: getSystemFont('bold'), color: DARK},
+  optional: {fontSize: 12, fontFamily: SANS, color: '#8A94A6', fontWeight: '400'},
+});
+
 export function WalletScreen() {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
@@ -223,6 +443,15 @@ export function WalletScreen() {
   const user = useAppStore(state => state.user);
   const [menuVisible, setMenuVisible] = React.useState(false);
   const [activeWallet, setActiveWallet] = React.useState(0);
+  const [showMoreActions, setShowMoreActions] = React.useState(false);
+  const [topupVisible, setTopupVisible] = React.useState(false);
+  const [sendVisible, setSendVisible] = React.useState(false);
+  const [addCardVisible, setAddCardVisible] = React.useState(false);
+  const [addWalletVisible, setAddWalletVisible] = React.useState(false);
+  const [withdrawVisible, setWithdrawVisible] = React.useState(false);
+  const startTopup = useTopupFlowStore((state) => state.start);
+  const startSend = useSendFlowStore((state) => state.start);
+  const startWithdraw = useWithdrawFlowStore((state) => state.start);
   const displayName = user?.name || 'Adom Isaac';
   const displayEmail = user?.email || 'adom@araka.app';
 
@@ -316,7 +545,26 @@ export function WalletScreen() {
             </View>
 
             <View style={styles.actionWrap}>
-              <ActionStrip />
+              <ActionStrip 
+                showMore={showMoreActions} 
+                onToggleMore={() => setShowMoreActions(prev => !prev)}
+                onTopUp={() => {
+                  startTopup();
+                  setTopupVisible(true);
+                }}
+                onSend={() => {
+                  startSend();
+                  setSendVisible(true);
+                }}
+                onWithdraw={() => {
+                  startWithdraw();
+                  setWithdrawVisible(true);
+                }}
+                onPayBills={() => navigation.navigate('Services')}
+                onAddCard={() => setAddCardVisible(true)}
+                onAddWallet={() => setAddWalletVisible(true)}
+                onPaymentLink={() => navigation.navigate('CreateInvoice')}
+              />
             </View>
           </Animated.View>
         </View>
@@ -324,17 +572,19 @@ export function WalletScreen() {
 
         <Animated.View
           style={[styles.card, {opacity: cardFade, transform: [{translateY: cardSlide}]}]}>
-          <View style={styles.payBillsCard}>
+          {!showMoreActions && (
+            <View style={styles.payBillsCard}>
             <View style={styles.payBillsText}>
               <Text style={styles.payBillsTitle}>Pay bills</Text>
               <Text style={styles.payBillsSub}>Pay your bills securely in seconds.</Text>
             </View>
-            <Pressable style={styles.payBillsBtn}>
+            <Pressable style={styles.payBillsBtn} onPress={() => navigation.navigate('Services')}>
               <Text style={styles.payBillsBtnText}>Pay Bills</Text>
             </Pressable>
           </View>
+          )}
 
-          <View style={styles.sectionHead}>
+          <View style={[styles.sectionHead, showMoreActions && {marginTop: 20}]}>
             <Text style={styles.sectionTitle}>Latest transactions</Text>
             <Pressable hitSlop={10} onPress={openTransactions}>
               <Text style={styles.seeAll}>See All</Text>
@@ -360,6 +610,12 @@ export function WalletScreen() {
         name={displayName}
         email={displayEmail}
       />
+
+      <TopupFlow visible={topupVisible} onClose={() => setTopupVisible(false)} />
+      <SendFlow visible={sendVisible} onClose={() => setSendVisible(false)} />
+      <WithdrawFlow visible={withdrawVisible} onClose={() => setWithdrawVisible(false)} />
+      <AddCardSheet visible={addCardVisible} onClose={() => setAddCardVisible(false)} />
+      <AddWalletSheet visible={addWalletVisible} onClose={() => setAddWalletVisible(false)} />
     </View>
   );
 }
