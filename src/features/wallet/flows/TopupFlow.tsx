@@ -4,7 +4,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import {getSystemFont} from '@styles/typography';
 import {useTopupFlowStore, PaymentMethod} from '../store/topupFlowStore';
 import {BottomSheet} from './components/BottomSheet';
-import {EnterPinSheet, ProcessingSheet, ConfirmationSheet} from './components/SharedSheets';
+import {EnterPinSheet, ProcessingSheet, ConfirmationSheet, SaveSheet} from './components/SharedSheets';
 import {TopupMobileMoneyFlow} from './TopupMobileMoneyFlow';
 import {TopupCardFlow} from './TopupCardFlow';
 import {TopupRibFlow} from './TopupRibFlow';
@@ -129,6 +129,30 @@ export function TopupFlow({visible, onClose}: {visible: boolean; onClose: () => 
   const backToMethod = useTopupFlowStore((state) => state.backToMethod);
   const backFromPin = useTopupFlowStore((state) => state.backFromPin);
 
+  const [showSaveSheet, setShowSaveSheet] = React.useState(false);
+
+  const handleDone = React.useCallback(() => {
+    if (!paymentMethod || paymentMethod === 'mobileMoney') {
+      setShowSaveSheet(true);
+    } else {
+      reset();
+      onClose();
+    }
+  }, [paymentMethod, reset, onClose]);
+
+  const handleSaveClose = React.useCallback(() => {
+    setShowSaveSheet(false);
+    reset();
+    onClose();
+  }, [reset, onClose]);
+
+  const handleSave = React.useCallback(() => {
+    // Perform save logic if needed
+    setShowSaveSheet(false);
+    reset();
+    onClose();
+  }, [reset, onClose]);
+
   const handleClose = React.useCallback(() => {
     reset();
     onClose();
@@ -178,12 +202,21 @@ export function TopupFlow({visible, onClose}: {visible: boolean; onClose: () => 
         <ConfirmationSheet
           visible={step === 'confirmation'}
           onClose={handleClose}
+          onDone={handleDone}
           telco={selectedTelco}
           amount={amount}
           paymentMethod={paymentMethod}
           cardNumber={cardNumber}
+          phoneNumber={phoneNumber}
         />
       )}
+
+      <SaveSheet
+        visible={showSaveSheet}
+        onClose={handleSaveClose}
+        onSave={handleSave}
+        phoneNumber={phoneNumber}
+      />
     </>
   );
 }

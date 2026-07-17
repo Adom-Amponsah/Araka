@@ -13,7 +13,8 @@ export type SendStep =
   | 'enterPin'
   | 'processing'
   | 'success'
-  | 'saveFavorite';
+  | 'saveFavorite'
+  | 'viewTransaction';
 
 export type LocalTransferProvider = {
   id: string;
@@ -112,6 +113,7 @@ type SendFlowState = {
   completePayment: () => void;
   saveFavorite: () => void;
   skipFavorite: () => void;
+  viewTransaction: () => void;
   backToRecipient: () => void;
   backToDetails: () => void;
   backToProviders: () => void;
@@ -265,6 +267,7 @@ export const useSendFlowStore = create<SendFlowState>((set, get) => ({
 
   saveFavorite: () => set({step: 'saveFavorite', error: null}),
   skipFavorite: () => set({step: 'saveFavorite', error: null}),
+  viewTransaction: () => set({step: 'viewTransaction', error: null}),
 
   backToRecipient: () => set({step: 'selectRecipient', error: null}),
   backToDetails: () => {

@@ -1,21 +1,17 @@
 import * as React from 'react';
 import {
-  Animated,
-  Dimensions,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  StyleSheet,
   Text,
   TextInput,
   View,
+  Pressable,
+  StyleSheet,
 } from 'react-native';
+import {BottomSheet} from '../../wallet/flows/components/BottomSheet';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {getSystemFont} from '@styles/typography';
 
-const {height} = Dimensions.get('window');
+
 const CORAL = '#F27649';
 const DARK = '#1A2535';
 const GRAY = '#8A94A6';
@@ -42,20 +38,9 @@ function formatExpiry(text: string) {
 }
 
 export function LinkPhysicalSheet({visible, onClose, onContinue}: LinkPhysicalSheetProps) {
-  const insets = useSafeAreaInsets();
-  const slide = React.useRef(new Animated.Value(height)).current;
   const [cardNumber, setCardNumber] = React.useState('');
   const [expiry, setExpiry] = React.useState('');
   const [cardId, setCardId] = React.useState('');
-
-  React.useEffect(() => {
-    Animated.spring(slide, {
-      toValue: visible ? 0 : height,
-      useNativeDriver: true,
-      damping: 20,
-      stiffness: 200,
-    }).start();
-  }, [visible, slide]);
 
   React.useEffect(() => {
     if (!visible) {
@@ -68,32 +53,15 @@ export function LinkPhysicalSheet({visible, onClose, onContinue}: LinkPhysicalSh
   const valid = cardNumber.length >= 19 && expiry.length === 5 && cardId.length > 0;
 
   return (
-    <Modal visible={visible} transparent animationType="none" statusBarTranslucent navigationBarTranslucent>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.root}
-        keyboardVerticalOffset={0}>
-        <Animated.View
-          style={[
-            styles.sheet,
-            {
-              paddingBottom: Math.max(insets.bottom, 16) + 16,
-              transform: [{translateY: slide}],
-            },
-          ]}>
-          <View style={styles.dragHandle} />
+    <BottomSheet visible={visible} onClose={onClose}>
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.title}>Link a physical card</Text>
+          <Text style={styles.subtitle}>Have your card handy</Text>
+        </View>
+      </View>
 
-          <View style={styles.header}>
-            <View>
-              <Text style={styles.title}>Link a physical card</Text>
-              <Text style={styles.subtitle}>Have your card handy</Text>
-            </View>
-            <Pressable onPress={onClose} style={styles.closeBtn}>
-              <Ionicons name="close" size={20} color={GRAY} />
-            </Pressable>
-          </View>
-
-          <Text style={styles.label}>Card Number</Text>
+      <Text style={styles.label}>Card Number</Text>
           <View style={styles.inputWrap}>
             <Text style={styles.network}>VISA</Text>
             <TextInput
@@ -143,36 +111,14 @@ export function LinkPhysicalSheet({visible, onClose, onContinue}: LinkPhysicalSh
             <Text style={styles.ctaText}>Save</Text>
           </Pressable>
 
-          <Pressable onPress={onClose} style={styles.notNow}>
-            <Text style={styles.notNowText}>Not now</Text>
-          </Pressable>
-        </Animated.View>
-      </KeyboardAvoidingView>
-    </Modal>
+        <Pressable onPress={onClose} style={styles.notNow}>
+          <Text style={styles.notNowText}>Not now</Text>
+        </Pressable>
+    </BottomSheet>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(13,19,26,0.35)',
-  },
-  sheet: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    paddingHorizontal: 24,
-    paddingTop: 12,
-  },
-  dragHandle: {
-    width: 44,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#E6EBF1',
-    alignSelf: 'center',
-    marginBottom: 16,
-  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -190,9 +136,6 @@ const styles = StyleSheet.create({
     color: GRAY,
     fontSize: 13,
     fontFamily: SANS,
-  },
-  closeBtn: {
-    padding: 4,
   },
   label: {
     color: DARK,

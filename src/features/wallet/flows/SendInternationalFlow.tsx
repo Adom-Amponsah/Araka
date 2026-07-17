@@ -10,7 +10,7 @@ import {
   SavedBeneficiary,
 } from '../store/sendFlowStore';
 import {BottomSheet} from './components/BottomSheet';
-import {ReviewSheet, SendProcessingSheet, SendSuccessSheet, SaveFavoriteSheet} from './components/SendSharedSheets';
+import {ReviewSheet, SendProcessingSheet, SendSuccessSheet, SaveFavoriteSheet, ViewTransactionSheet} from './components/SendSharedSheets';
 import {EnterPinSheet} from './components/SharedSheets';
 
 const CORAL = '#F27649';
@@ -656,6 +656,7 @@ export function SendInternationalFlow({visible, onClose, onBack}: {visible: bool
   const backToCountry = useSendFlowStore((state) => state.backToCountry);
   const backToBeneficiary = useSendFlowStore((state) => state.backToBeneficiary);
   const backToDetails = useSendFlowStore((state) => state.backToDetails);
+  const viewTransaction = useSendFlowStore((state) => state.viewTransaction);
 
   if (!visible) {
     return null;
@@ -734,6 +735,7 @@ export function SendInternationalFlow({visible, onClose, onBack}: {visible: bool
         visible={step === 'success'}
         onClose={onClose}
         onDone={saveFavorite}
+        onViewTransaction={viewTransaction}
         recipientLabel={recipientLabel}
         recipientDetail={fullName}
         amount={amount}
@@ -745,6 +747,15 @@ export function SendInternationalFlow({visible, onClose, onBack}: {visible: bool
         recipientLabel={fullName}
         recipientDetail={bankAccount}
         amount={amount}
+      />
+
+      <ViewTransactionSheet
+        visible={step === 'viewTransaction'}
+        onClose={onClose}
+        amount={amount || '0.00'}
+        fee={fee}
+        recipientName={fullName}
+        recipientPhone={bankAccount}
       />
     </>
   );

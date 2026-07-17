@@ -4,7 +4,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import {getSystemFont} from '@styles/typography';
 import {useSendFlowStore, LOCAL_TRANSFER_PROVIDERS, LocalTransferProvider} from '../store/sendFlowStore';
 import {BottomSheet} from './components/BottomSheet';
-import {ReviewSheet, SendProcessingSheet, SendSuccessSheet, SaveFavoriteSheet} from './components/SendSharedSheets';
+import {ReviewSheet, SendProcessingSheet, SendSuccessSheet, SaveFavoriteSheet, ViewTransactionSheet} from './components/SendSharedSheets';
 import {EnterPinSheet} from './components/SharedSheets';
 
 const CORAL = '#F27649';
@@ -104,29 +104,31 @@ const pr = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    padding: 14,
-    gap: 14,
+    padding: 16,
+    gap: 16,
     borderWidth: 1,
-    borderColor: '#EDF0F4',
+    borderColor: '#F3F4F6',
   },
   iconBadge: {
-    width: 44,
-    height: 44,
+    width: 48,
+    height: 48,
     borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  info: {flex: 1, gap: 3},
+  info: {flex: 1, gap: 4},
   name: {
     color: DARK,
     fontSize: 15,
     fontWeight: '700',
     fontFamily: BOLD,
-    letterSpacing: -0.2,
   },
   sub: {
-    color: '#8A94A6',
-    fontSize: 12,
+    color: GRAY,
+    fontSize: 13,
     fontFamily: SANS,
   },
 });
@@ -142,20 +144,14 @@ function EquityRibCard({onPress}: {onPress: () => void}) {
   return (
     <Animated.View style={[erb.wrap, {transform: [{scale}]}]}>
       <Pressable onPress={onPress} onPressIn={pressIn} onPressOut={pressOut} style={erb.card}>
-        <View style={erb.cardTop}>
-          <View style={erb.chipRow}>
-            <Ionicons name="card-chip-outline" size={20} color="#2563EB" />
-            <Text style={erb.bankName}>Equity RIB</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={18} color="#C4CDD8" />
-        </View>
-        <Text style={erb.cardNumber}>122993 393939 3999</Text>
-        <View style={erb.cardBottom}>
-          <Text style={erb.cardLabel}>Your Equity RIB</Text>
-          <View style={erb.badge}>
-            <Text style={erb.badgeText}>RIB</Text>
+        <View style={erb.cardLeft}>
+          <Ionicons name="receipt-outline" size={36} color={CORAL} />
+          <View style={erb.cardInfo}>
+            <Text style={erb.cardName}>To your Equity BCDC RIB</Text>
+            <Text style={erb.cardNumber}>1234 7645 4683 6832 9732</Text>
           </View>
         </View>
+        <Ionicons name="chevron-forward" size={18} color="#C4CDD8" />
       </Pressable>
     </Animated.View>
   );
@@ -164,41 +160,29 @@ function EquityRibCard({onPress}: {onPress: () => void}) {
 const erb = StyleSheet.create({
   wrap: {marginBottom: 16},
   card: {
-    backgroundColor: '#EAF2FF',
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#BFDBFE',
-  },
-  cardTop: {
+    borderColor: '#F3F4F6',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
   },
-  chipRow: {flexDirection: 'row', alignItems: 'center', gap: 8},
-  bankName: {fontSize: 15, fontWeight: '700', fontFamily: BOLD, color: '#2563EB'},
+  cardLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  cardInfo: {
+    gap: 4,
+  },
+  cardName: {fontSize: 15, fontWeight: '700', fontFamily: BOLD, color: DARK},
   cardNumber: {
-    fontSize: 18,
-    fontWeight: '700',
-    fontFamily: BOLD,
-    color: DARK,
-    letterSpacing: 2,
-    marginBottom: 12,
+    fontSize: 13,
+    fontFamily: SANS,
+    color: GRAY,
   },
-  cardBottom: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  cardLabel: {fontSize: 12, fontFamily: SANS, color: GRAY},
-  badge: {
-    backgroundColor: '#2563EB',
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-  },
-  badgeText: {fontSize: 10, fontWeight: '700', fontFamily: BOLD, color: '#FFFFFF'},
 });
 
 // ─────────────────────────────────────────────
@@ -226,9 +210,27 @@ function LocalTransferProvidersSheet({
   const showMobileMoney = activeFilter === 'all' || activeFilter === 'mobileMoney';
 
   return (
-    <BottomSheet visible={visible} onClose={onClose} onBack={onBack} scrollable>
-      <Text style={lp.title}>Local Transfer</Text>
-      <Text style={lp.sub}>Select a provider</Text>
+    <BottomSheet visible={visible} onClose={onClose} scrollable>
+      <View style={lp.headerRow}>
+        <Pressable onPress={onBack} style={lp.backBtn}>
+          <Ionicons name="arrow-back" size={24} color={DARK} />
+        </Pressable>
+        <Text style={lp.title}>Local Transfer</Text>
+      </View>
+
+      <View style={lp.searchRow}>
+        <View style={lp.searchInputBox}>
+          <Ionicons name="search-outline" size={20} color="#9CA3AF" />
+          <TextInput
+            style={lp.searchInput}
+            placeholder="Search banks or mobile money..."
+            placeholderTextColor="#9CA3AF"
+          />
+        </View>
+        <Pressable style={lp.filterBtn}>
+          <Ionicons name="funnel-outline" size={20} color="#FFFFFF" />
+        </Pressable>
+      </View>
 
       <ScrollView
         horizontal
@@ -279,18 +281,55 @@ function LocalTransferProvidersSheet({
 }
 
 const lp = StyleSheet.create({
-  title: {fontSize: 22, fontWeight: '800', fontFamily: BOLD, color: DARK, marginBottom: 4},
-  sub: {fontSize: 14, fontFamily: SANS, color: GRAY, marginBottom: 16},
-  filterStrip: {gap: 8, paddingHorizontal: 0, marginBottom: 16},
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  backBtn: {
+    marginRight: 12,
+  },
+  title: {fontSize: 22, fontWeight: '800', fontFamily: BOLD, color: DARK},
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 20,
+  },
+  searchInputBox: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    height: 48,
+    gap: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 15,
+    fontFamily: SANS,
+    color: DARK,
+    padding: 0,
+  },
+  filterBtn: {
+    width: 48,
+    height: 48,
+    backgroundColor: CORAL,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  filterStrip: {gap: 8, paddingHorizontal: 0, marginBottom: 24},
   filterScroll: {flexGrow: 0, marginBottom: 8},
-  section: {marginBottom: 20},
+  section: {marginBottom: 24},
   sectionTitle: {
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: 18,
+    fontWeight: '800',
     fontFamily: BOLD,
-    color: SLATE,
-    marginBottom: 10,
-    letterSpacing: 0.3,
+    color: DARK,
+    marginBottom: 16,
   },
 });
 
@@ -322,22 +361,25 @@ function LocalTransferDetailsSheet({
   const isRib = provider?.category === 'rib';
 
   return (
-    <BottomSheet visible={visible} onClose={onClose} onBack={onBack}>
+    <BottomSheet visible={visible} onClose={onClose}>
       <View style={ld.header}>
-        <View style={ld.logo}>
-          <Ionicons name={(provider?.icon || 'business') as any} size={24} color={provider?.iconColor || CORAL} />
+        <View style={ld.logoBadge}>
+          <Ionicons name={(provider?.icon || 'business') as any} size={32} color={provider?.iconColor || CORAL} />
         </View>
-        <Text style={ld.title}>{provider?.name || 'Transfer'}</Text>
+        <Text style={ld.title}>{isRib ? 'Send Money to your\nRIB' : `Send Money to\n${provider?.name}`}</Text>
       </View>
 
-      <View style={ld.section}>
-        <Text style={ld.label}>{isRib ? 'Your Equity RIB Card' : 'Bank Account'}</Text>
-        {isRib ? (
-          <View style={ld.ribDisplay}>
-            <Ionicons name="card-chip-outline" size={20} color="#2563EB" />
-            <Text style={ld.ribNumber}>122993 393939 3999</Text>
+      {isRib ? (
+        <View style={ld.ribCard}>
+          <Ionicons name="receipt-outline" size={32} color={CORAL} />
+          <View style={ld.ribCardInfo}>
+            <Text style={ld.ribCardName}>Your Equity BCDC RIB</Text>
+            <Text style={ld.ribCardNumber}>1234 7645 4683 6832 9732</Text>
           </View>
-        ) : (
+        </View>
+      ) : (
+        <View style={ld.section}>
+          <Text style={ld.label}>Bank Account</Text>
           <View style={ld.inputRow}>
             <Ionicons name="business-outline" size={20} color={CORAL} style={{marginLeft: 4}} />
             <TextInput
@@ -345,12 +387,12 @@ function LocalTransferDetailsSheet({
               value={bankAccount}
               onChangeText={onBankAccountChange}
               placeholder="Enter bank account number"
-              placeholderTextColor="#D1D5DB"
+              placeholderTextColor="#9CA3AF"
               keyboardType="numeric"
             />
           </View>
-        )}
-      </View>
+        </View>
+      )}
 
       <View style={ld.section}>
         <Text style={ld.label}>Amount</Text>
@@ -361,7 +403,7 @@ function LocalTransferDetailsSheet({
             value={amount}
             onChangeText={onAmountChange}
             placeholder="Enter amount"
-            placeholderTextColor="#D1D5DB"
+            placeholderTextColor="#9CA3AF"
             keyboardType="numeric"
           />
           <Text style={ld.currency}>USD</Text>
@@ -385,54 +427,69 @@ function LocalTransferDetailsSheet({
 }
 
 const ld = StyleSheet.create({
-  header: {alignItems: 'center', marginBottom: 24},
-  logo: {
-    width: 56,
-    height: 56,
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 24,
+    gap: 16,
+  },
+  logoBadge: {
+    width: 64,
+    height: 64,
     borderRadius: 16,
-    backgroundColor: '#FFF5F2',
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
   },
-  title: {fontSize: 20, fontWeight: '800', fontFamily: BOLD, color: DARK},
-  section: {marginBottom: 20},
-  label: {fontSize: 14, fontWeight: '700', fontFamily: BOLD, color: DARK, marginBottom: 8},
+  title: {
+    flex: 1,
+    fontSize: 22,
+    fontWeight: '800',
+    fontFamily: BOLD,
+    color: DARK,
+    lineHeight: 28,
+  },
+  section: {marginBottom: 24},
+  label: {fontSize: 16, fontWeight: '800', fontFamily: BOLD, color: DARK, marginBottom: 12},
+  ribCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
+    padding: 16,
+    gap: 16,
+    marginBottom: 24,
+  },
+  ribCardInfo: {
+    gap: 4,
+  },
+  ribCardName: {fontSize: 14, fontWeight: '600', fontFamily: BOLD, color: DARK},
+  ribCardNumber: {fontSize: 13, fontFamily: SANS, color: GRAY},
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#F3F4F6',
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 14,
     gap: 8,
   },
   input: {fontSize: 15, fontFamily: SANS, color: DARK, padding: 0},
-  currency: {fontSize: 14, fontWeight: '600', fontFamily: BOLD, color: GRAY},
-  ribDisplay: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#EAF2FF',
-    borderWidth: 1,
-    borderColor: '#BFDBFE',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 14,
-    gap: 8,
-  },
-  ribNumber: {fontSize: 15, fontWeight: '600', fontFamily: BOLD, color: '#2563EB', letterSpacing: 1},
-  quickRow: {flexDirection: 'row', gap: 8, marginTop: 12},
+  currency: {fontSize: 14, fontWeight: '700', fontFamily: BOLD, color: '#4B5563'},
+  quickRow: {flexDirection: 'row', gap: 8, marginTop: 16},
   quickBtn: {
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
-    backgroundColor: OFF,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
+    backgroundColor: '#FFF5F2',
   },
-  quickText: {fontSize: 13, fontWeight: '600', fontFamily: BOLD, color: CORAL},
+  quickText: {fontSize: 13, fontWeight: '700', fontFamily: BOLD, color: CORAL},
   btn: {
     backgroundColor: CORAL,
     paddingVertical: 16,
@@ -463,6 +520,7 @@ export function SendLocalTransferFlow({visible, onClose, onBack}: {visible: bool
   const setPin = useSendFlowStore((state) => state.setPin);
   const submitPin = useSendFlowStore((state) => state.submitPin);
   const saveFavorite = useSendFlowStore((state) => state.saveFavorite);
+  const viewTransaction = useSendFlowStore((state) => state.viewTransaction);
   const backToProviders = useSendFlowStore((state) => state.backToProviders);
   const backToDetails = useSendFlowStore((state) => state.backToDetails);
 
@@ -528,6 +586,7 @@ export function SendLocalTransferFlow({visible, onClose, onBack}: {visible: bool
         visible={step === 'success'}
         onClose={onClose}
         onDone={saveFavorite}
+        onViewTransaction={viewTransaction}
         recipientLabel={recipientLabel}
         recipientDetail={recipientDetail}
         amount={amount}
@@ -539,6 +598,15 @@ export function SendLocalTransferFlow({visible, onClose, onBack}: {visible: bool
         recipientLabel={recipientLabel}
         recipientDetail={recipientDetail}
         amount={amount}
+      />
+
+      <ViewTransactionSheet
+        visible={step === 'viewTransaction'}
+        onClose={onClose}
+        amount={amount || '0.00'}
+        fee={fee}
+        recipientName={recipientLabel}
+        recipientPhone={recipientDetail}
       />
     </>
   );

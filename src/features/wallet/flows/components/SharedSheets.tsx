@@ -12,6 +12,13 @@ const OFF = '#F4F6FA';
 const SANS = getSystemFont();
 const BOLD = getSystemFont('bold');
 
+export const telcoLabels: Record<MobileTelco, string> = {
+  mpesa: 'MPesa',
+  airtel: 'AirtelMoney',
+  orange: 'OrangeMoney',
+  afrimoney: 'AfriMoney',
+};
+
 // ─────────────────────────────────────────────
 // Enter PIN Sheet
 // ─────────────────────────────────────────────
@@ -95,8 +102,10 @@ const ep = StyleSheet.create({
   btn: {
     backgroundColor: CORAL,
     paddingVertical: 16,
-    paddingHorizontal: 48,
+    width: '100%',
+    paddingHorizontal: 24,
     borderRadius: 14,
+    alignItems: 'center',
   },
   btnText: {color: '#FFFFFF', fontSize: 15, fontWeight: '700', fontFamily: BOLD},
 });
@@ -140,13 +149,6 @@ export function ProcessingSheet({
       return () => animations.forEach((anim) => anim.stop());
     }
   }, [visible, dots]);
-
-  const telcoLabels: Record<MobileTelco, string> = {
-    mpesa: 'MPesa',
-    airtel: 'AirtelMoney',
-    orange: 'OrangeMoney',
-    afrimoney: 'AfriMoney',
-  };
 
   return (
     <BottomSheet visible={visible} onClose={() => {}} closable={false}>
@@ -235,17 +237,21 @@ const pr = StyleSheet.create({
 export function ConfirmationSheet({
   visible,
   onClose,
+  onDone,
   telco,
   amount,
   paymentMethod,
   cardNumber,
+  phoneNumber,
 }: {
   visible: boolean;
   onClose: () => void;
+  onDone: () => void;
   telco: MobileTelco | null;
   amount: string;
   paymentMethod: PaymentMethod | null;
   cardNumber: string;
+  phoneNumber: string;
 }) {
   // Confirmation only has close, no back
   const scale = React.useRef(new Animated.Value(0)).current;
@@ -301,31 +307,29 @@ export function ConfirmationSheet({
         )}
 
         {!paymentMethod || paymentMethod === 'mobileMoney' ? (
-          <View style={cf.details}>
-            <View style={cf.row}>
-              <Text style={cf.rowLabel}>Amount</Text>
-              <Text style={cf.rowValue}>${amount || '10.10'} USD</Text>
+          <View style={cf.txCard}>
+            <View style={cf.txIconWrap}>
+              <View style={cf.txLogo}>
+                 <Ionicons name="phone-portrait" size={24} color={CORAL} />
+              </View>
+              <View>
+                 <Text style={cf.txLabel}>{telco ? telcoLabels[telco] : 'MPesa'}</Text>
+                 <Text style={cf.txPhone}>{phoneNumber || '+243 81 234 5678'}</Text>
+              </View>
             </View>
-            <View style={cf.row}>
-              <Text style={cf.rowLabel}>Transaction ID</Text>
-              <Text style={cf.rowValue}>TXN{Math.floor(Math.random() * 1000000)}</Text>
-            </View>
-            <View style={cf.row}>
-              <Text style={cf.rowLabel}>Date</Text>
-              <Text style={cf.rowValue}>{new Date().toLocaleDateString()}</Text>
+            <View style={cf.txAmountBadge}>
+              <Text style={cf.txAmount}>${amount || '10.10'}</Text>
             </View>
           </View>
         ) : null}
 
-        <Pressable onPress={onClose} style={cf.btn}>
+        <Pressable onPress={onDone} style={cf.btn}>
           <Text style={cf.btnText}>Done</Text>
         </Pressable>
 
-        {paymentMethod === 'card' && (
-          <Pressable onPress={onClose} style={cf.viewTxn}>
-            <Text style={cf.viewTxnText}>View transaction</Text>
-          </Pressable>
-        )}
+        <Pressable onPress={onClose} style={cf.viewTxn}>
+          <Text style={cf.viewTxnText}>View transaction</Text>
+        </Pressable>
       </View>
     </BottomSheet>
   );
@@ -389,4 +393,224 @@ const cf = StyleSheet.create({
   btnText: {color: '#FFFFFF', fontSize: 15, fontWeight: '700', fontFamily: BOLD},
   viewTxn: {paddingVertical: 12},
   viewTxnText: {fontSize: 14, fontWeight: '700', fontFamily: BOLD, color: CORAL},
+  txCard: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#E8EDF2',
+  },
+  txIconWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  txLogo: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: '#FFF5F2',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  txLabel: {
+    fontSize: 15,
+    fontWeight: '700',
+    fontFamily: BOLD,
+    color: DARK,
+    marginBottom: 2,
+  },
+  txPhone: {
+    fontSize: 13,
+    fontFamily: SANS,
+    color: GRAY,
+  },
+  txAmountBadge: {
+    backgroundColor: '#FFF1EA',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 10,
+  },
+  txAmount: {
+    fontSize: 14,
+    fontWeight: '700',
+    fontFamily: BOLD,
+    color: CORAL,
+  },
+});
+
+// ─────────────────────────────────────────────
+// Save Sheet
+// ─────────────────────────────────────────────
+export function SaveSheet({
+  visible,
+  onClose,
+  onSave,
+  phoneNumber,
+}: {
+  visible: boolean;
+  onClose: () => void;
+  onSave: () => void;
+  phoneNumber: string;
+}) {
+  const [nickname, setNickname] = React.useState('');
+  const [nicknameFocused, setNicknameFocused] = React.useState(false);
+
+  return (
+    <BottomSheet visible={visible} onClose={onClose}>
+      <View style={sv.handle} />
+      <Pressable onPress={onClose} style={sv.closeBtn}>
+        <Ionicons name="close" size={22} color="#8A94A6" />
+      </Pressable>
+
+      <Text style={sv.title}>Save this information?</Text>
+      <Text style={sv.subtitle}>
+        Save these details to make future payments faster.
+      </Text>
+
+      <Text style={sv.label}>Phone number</Text>
+      <View style={sv.inputWrap}>
+        <Ionicons name="call-outline" size={18} color="#F27649" />
+        <TextInput
+          style={sv.input}
+          value={phoneNumber}
+          editable={false}
+          placeholderTextColor="#C4CDD8"
+        />
+        <Ionicons name="chevron-down" size={18} color="#8A94A6" />
+      </View>
+
+      <Text style={sv.labelBox}>
+        <Text style={sv.labelDark}>Nickname</Text>
+        <Text style={sv.labelLight}> · Optional</Text>
+      </Text>
+      <View style={[sv.inputWrap, {borderColor: nicknameFocused ? '#F27649' : '#E6EBF1'}]}>
+        <Ionicons name="pricetag-outline" size={18} color="#F27649" />
+        <TextInput
+          style={sv.input}
+          value={nickname}
+          onChangeText={setNickname}
+          placeholder="Mom's phone"
+          placeholderTextColor="#1A2535"
+          onFocus={() => setNicknameFocused(true)}
+          onBlur={() => setNicknameFocused(false)}
+        />
+      </View>
+
+      <Pressable onPress={onSave} style={sv.saveBtn}>
+        <Text style={sv.saveBtnText}>Save</Text>
+      </Pressable>
+      <Pressable onPress={onClose} style={sv.notNowBtn}>
+        <Text style={sv.notNowText}>Not now</Text>
+      </Pressable>
+    </BottomSheet>
+  );
+}
+
+const sv = StyleSheet.create({
+  handle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#D1D9E0',
+    alignSelf: 'center',
+    marginBottom: 16,
+  },
+  closeBtn: {
+    position: 'absolute',
+    top: 14,
+    right: 24,
+    zIndex: 10,
+  },
+  title: {
+    color: DARK,
+    fontSize: 22,
+    fontWeight: '800',
+    fontFamily: BOLD,
+    letterSpacing: -0.4,
+    marginBottom: 6,
+    marginTop: 10,
+  },
+  subtitle: {
+    color: '#8A94A6',
+    fontSize: 14,
+    fontFamily: SANS,
+    lineHeight: 20,
+    marginBottom: 24,
+  },
+  label: {
+    color: DARK,
+    fontSize: 14,
+    fontWeight: '700',
+    fontFamily: BOLD,
+    marginBottom: 8,
+  },
+  labelBox: {
+    marginBottom: 8,
+  },
+  labelDark: {
+    color: DARK,
+    fontSize: 14,
+    fontWeight: '700',
+    fontFamily: BOLD,
+  },
+  labelLight: {
+    color: '#8A94A6',
+    fontSize: 14,
+    fontFamily: SANS,
+  },
+  inputWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderWidth: 1,
+    borderColor: '#E6EBF1',
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    height: 54,
+    marginBottom: 20,
+  },
+  input: {
+    flex: 1,
+    color: DARK,
+    fontSize: 15,
+    fontFamily: SANS,
+    padding: 0,
+  },
+  saveBtn: {
+    backgroundColor: CORAL,
+    borderRadius: 18,
+    paddingVertical: 18,
+    alignItems: 'center',
+    marginTop: 12,
+    shadowColor: CORAL,
+    shadowOffset: {width: 0, height: 6},
+    shadowOpacity: 0.30,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  saveBtnText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '800',
+    fontFamily: BOLD,
+    letterSpacing: 0.3,
+  },
+  notNowBtn: {
+    alignItems: 'center',
+    paddingVertical: 16,
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  notNowText: {
+    color: CORAL,
+    fontSize: 15,
+    fontWeight: '700',
+    fontFamily: BOLD,
+  },
 });

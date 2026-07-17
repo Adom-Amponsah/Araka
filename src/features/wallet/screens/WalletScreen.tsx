@@ -286,53 +286,65 @@ function AddCardSheet({visible, onClose}: {visible: boolean; onClose: () => void
       <Text style={ac.sub}>Save these details to make future payments</Text>
 
       <View style={ac.form}>
-        <View style={ac.inputRow}>
-          <Ionicons name="card-outline" size={20} color={CORAL} style={{marginLeft: 4}} />
-          <TextInput
-            style={ac.input}
-            value={cardNumber}
-            onChangeText={(text) => setCardNumber(formatCardNumber(text))}
-            placeholder="Card number"
-            placeholderTextColor="#9CA3AF"
-            keyboardType="numeric"
-            maxLength={19}
-          />
+        <View style={aw.fieldWrap}>
+          <Text style={aw.label}>Card Number</Text>
+          <View style={ac.inputRow}>
+            <Ionicons name="card-outline" size={20} color={CORAL} style={{marginLeft: 4}} />
+            <TextInput
+              style={ac.input}
+              value={cardNumber}
+              onChangeText={(text) => setCardNumber(formatCardNumber(text))}
+              placeholder="Card number"
+              placeholderTextColor="#9CA3AF"
+              keyboardType="numeric"
+              maxLength={19}
+            />
+          </View>
         </View>
 
         <View style={ac.row}>
-          <View style={[ac.inputRow, {flex: 1}]}>
-            <TextInput
-              style={ac.input}
-              value={expiry}
-              onChangeText={(text) => setExpiry(formatExpiry(text))}
-              placeholder="MM/YY"
-              placeholderTextColor="#9CA3AF"
-              keyboardType="numeric"
-              maxLength={5}
-            />
+          <View style={[aw.fieldWrap, {flex: 1}]}>
+            <Text style={aw.label}>Expiry</Text>
+            <View style={ac.inputRow}>
+              <TextInput
+                style={ac.input}
+                value={expiry}
+                onChangeText={(text) => setExpiry(formatExpiry(text))}
+                placeholder="MM/YY"
+                placeholderTextColor="#9CA3AF"
+                keyboardType="numeric"
+                maxLength={5}
+              />
+            </View>
           </View>
-          <View style={[ac.inputRow, {flex: 1}]}>
-            <TextInput
-              style={ac.input}
-              value={cvv}
-              onChangeText={(text) => setCvv(text.replace(/\D/g, '').slice(0, 4))}
-              placeholder="CVV"
-              placeholderTextColor="#9CA3AF"
-              keyboardType="numeric"
-              maxLength={4}
-              secureTextEntry
-            />
+          <View style={[aw.fieldWrap, {flex: 1}]}>
+            <Text style={aw.label}>CVV</Text>
+            <View style={ac.inputRow}>
+              <TextInput
+                style={ac.input}
+                value={cvv}
+                onChangeText={(text) => setCvv(text.replace(/\D/g, '').slice(0, 4))}
+                placeholder="CVV"
+                placeholderTextColor="#9CA3AF"
+                keyboardType="numeric"
+                maxLength={4}
+                secureTextEntry
+              />
+            </View>
           </View>
         </View>
 
-        <View style={ac.inputRow}>
-          <TextInput
-            style={ac.input}
-            value={nickname}
-            onChangeText={setNickname}
-            placeholder="Nickname (optional)"
-            placeholderTextColor="#9CA3AF"
-          />
+        <View style={aw.fieldWrap}>
+          <Text style={aw.label}>Nickname <Text style={aw.optional}>(optional)</Text></Text>
+          <View style={ac.inputRow}>
+            <TextInput
+              style={ac.input}
+              value={nickname}
+              onChangeText={setNickname}
+              placeholder="Enter nickname"
+              placeholderTextColor="#9CA3AF"
+            />
+          </View>
         </View>
       </View>
 
@@ -392,7 +404,7 @@ function AddWalletSheet({visible, onClose}: {visible: boolean; onClose: () => vo
         <View style={aw.fieldWrap}>
           <Text style={aw.label}>Phone Number</Text>
           <View style={ac.inputRow}>
-            <Ionicons name="phone-outline" size={20} color={CORAL} style={{marginLeft: 4}} />
+            <Ionicons name="call-outline" size={20} color={CORAL} style={{marginLeft: 4}} />
             <TextInput
               style={ac.input}
               value={phoneNumber}
@@ -495,9 +507,6 @@ export function WalletScreen() {
     <View style={styles.root}>
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false} bounces={false}>
         <View style={[styles.hero, {paddingTop: Math.max(insets.top, 20) + 8}]}>
-          <View style={styles.ringOuter} />
-          <View style={styles.ringInner} />
-
           <Animated.View style={[styles.topBar, {opacity: heroFade, transform: [{translateY: heroY}]}]}>
             <Pressable hitSlop={10} onPress={() => setMenuVisible(true)}>
               <Ionicons name="menu" size={28} color="#FFFFFF" />

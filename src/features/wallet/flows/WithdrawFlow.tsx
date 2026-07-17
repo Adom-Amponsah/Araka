@@ -345,7 +345,7 @@ function ConfirmWithdrawalSheet({
   return (
     <BottomSheet visible={visible} onClose={onClose} onBack={onBack}>
       <Text style={cw.title}>Confirm your withdrawal</Text>
-      <Text style={cw.sub}>Review the details before confirming</Text>
+      <Text style={cw.sub}>Please verify the information before confirming.</Text>
 
       <View style={cw.table}>
         {agentName && (
@@ -373,12 +373,12 @@ function ConfirmWithdrawalSheet({
         </View>
       </View>
 
-      <Pressable onPress={onConfirm} style={cw.confirmBtn}>
-        <Text style={cw.confirmBtnText}>Confirm</Text>
-      </Pressable>
-
       <Pressable onPress={onEdit} style={cw.editBtn}>
         <Text style={cw.editBtnText}>Edit</Text>
+      </Pressable>
+
+      <Pressable onPress={onConfirm} style={cw.confirmBtn}>
+        <Text style={cw.confirmBtnText}>Confirm</Text>
       </Pressable>
     </BottomSheet>
   );
@@ -411,8 +411,14 @@ const cw = StyleSheet.create({
     marginBottom: 12,
   },
   confirmBtnText: {color: '#FFFFFF', fontSize: 15, fontWeight: '700', fontFamily: BOLD},
-  editBtn: {paddingVertical: 12, alignItems: 'center'},
-  editBtnText: {fontSize: 14, fontWeight: '700', fontFamily: BOLD, color: GRAY},
+  editBtn: {
+    backgroundColor: '#FFF5F2',
+    paddingVertical: 16,
+    borderRadius: 14,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  editBtnText: {fontSize: 15, fontWeight: '700', fontFamily: BOLD, color: CORAL},
 });
 
 // ─────────────────────────────────────────────
@@ -439,40 +445,44 @@ function WithdrawalSuccessSheet({
   const isAgent = !!agentName;
 
   return (
-    <BottomSheet visible={visible} onClose={onClose} fullHeight>
+    <BottomSheet visible={visible} onClose={onClose}>
       <View style={ws.content}>
-        <View style={ws.checkCircle}>
-          <Ionicons name="checkmark" size={36} color="#FFFFFF" />
+        <View style={ws.checkCircleWrap}>
+          <View style={ws.checkCircleInner}>
+            <Ionicons name="checkmark" size={24} color={GREEN} />
+          </View>
         </View>
 
-        <Text style={ws.title}>Withdrawal Successful</Text>
+        <Text style={ws.title}>Withdraw Successful</Text>
 
         {isAgent ? (
           <>
-            <View style={ws.card}>
-              <View style={ws.cardRow}>
-                <Text style={ws.cardLabel}>Agent Name</Text>
-                <Text style={ws.cardValue}>{agentName}</Text>
+            <Text style={ws.sub}>Your transaction was completed successfully.</Text>
+            
+            <View style={ws.agentCard}>
+              <View style={ws.agentIconBox}>
+                <Ionicons name="storefront" size={28} color={CORAL} />
               </View>
-              <View style={ws.cardDivider} />
-              <View style={ws.cardRow}>
-                <Text style={ws.cardLabel}>Agent Number</Text>
-                <Text style={ws.cardValue}>{agentNumber}</Text>
+              <View style={ws.agentInfo}>
+                <Text style={ws.agentNameText}>{agentName}</Text>
+                <Text style={ws.agentNumberText}>{agentNumber}</Text>
               </View>
-              <View style={ws.cardDivider} />
-              <View style={ws.cardRow}>
-                <Text style={ws.cardLabel}>Total Amount</Text>
-                <Text style={ws.cardAmount}>{total}</Text>
+              <View style={ws.agentAmountBox}>
+                <Text style={ws.agentAmountText}>{total?.replace(' USD', '')}</Text>
               </View>
             </View>
 
             <Pressable onPress={onDone} style={ws.btn}>
               <Text style={ws.btnText}>Done</Text>
             </Pressable>
+
+            <Pressable onPress={onClose} style={ws.viewTxBtnAgent}>
+              <Text style={ws.viewTxTextAgent}>View transaction</Text>
+            </Pressable>
           </>
         ) : (
           <>
-            <Text style={ws.sub}>Your cashout code</Text>
+            <Text style={ws.sub}>Your transaction was completed successfully.</Text>
 
             <View style={ws.codeRow}>
               {codeDigits.map((digit, i) => (
@@ -498,33 +508,67 @@ function WithdrawalSuccessSheet({
 
 const ws = StyleSheet.create({
   content: {alignItems: 'center', paddingTop: 20},
-  checkCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: GREEN,
+  checkCircleWrap: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: '#F3FAF4',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 20,
   },
+  checkCircleInner: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 3,
+    borderColor: GREEN,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   title: {fontSize: 22, fontWeight: '800', fontFamily: BOLD, color: DARK, marginBottom: 8, textAlign: 'center'},
   sub: {fontSize: 14, fontFamily: SANS, color: GRAY, marginBottom: 24, textAlign: 'center'},
-  card: {
-    backgroundColor: OFF,
+  agentCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    padding: 18,
+    padding: 16,
     marginBottom: 24,
     width: '100%',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
-  cardRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  agentIconBox: {
+    marginRight: 16,
   },
-  cardLabel: {fontSize: 14, fontFamily: SANS, color: GRAY},
-  cardValue: {fontSize: 14, fontWeight: '600', fontFamily: BOLD, color: DARK},
-  cardAmount: {fontSize: 16, fontWeight: '700', fontFamily: BOLD, color: CORAL},
-  cardDivider: {height: 1, backgroundColor: '#E5E7EB', marginVertical: 12},
+  agentInfo: {
+    flex: 1,
+  },
+  agentNameText: {
+    fontSize: 15,
+    fontWeight: '700',
+    fontFamily: BOLD,
+    color: DARK,
+    marginBottom: 2,
+  },
+  agentNumberText: {
+    fontSize: 13,
+    fontFamily: SANS,
+    color: GRAY,
+  },
+  agentAmountBox: {
+    backgroundColor: '#FFF5F2',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  agentAmountText: {
+    fontSize: 13,
+    fontWeight: '700',
+    fontFamily: BOLD,
+    color: CORAL,
+  },
   codeRow: {flexDirection: 'row', gap: 10, marginBottom: 32},
   codeBox: {
     width: 44,
@@ -543,11 +587,13 @@ const ws = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     width: '100%',
-    marginBottom: 12,
+    marginBottom: 4,
   },
   btnText: {color: '#FFFFFF', fontSize: 15, fontWeight: '700', fontFamily: BOLD},
   viewTxBtn: {paddingVertical: 12, alignItems: 'center', width: '100%'},
   viewTxText: {fontSize: 14, fontWeight: '700', fontFamily: BOLD, color: GRAY},
+  viewTxBtnAgent: {paddingVertical: 12, alignItems: 'center', width: '100%'},
+  viewTxTextAgent: {fontSize: 15, fontWeight: '700', fontFamily: BOLD, color: CORAL},
 });
 
 // ─────────────────────────────────────────────

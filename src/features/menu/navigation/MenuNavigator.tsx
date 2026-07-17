@@ -9,6 +9,8 @@ import {ReportProblemScreen} from '../screens/ReportProblemScreen';
 import {MenuPlaceholderScreen} from '../screens/MenuPlaceholderScreen';
 import {FeesScreen} from '../screens/FeesScreen';
 
+import {InvoicesScreen} from '../screens/InvoicesScreen';
+
 export type MenuStackParamList = {
   LanguageSettings: undefined;
   SecuritySettings: undefined;
@@ -41,7 +43,7 @@ export function MenuNavigator() {
       <MenuStack.Screen name="ReportProblem" component={ReportProblemScreen} />
       <MenuStack.Screen name="Terms" component={TermsScreen} />
       <MenuStack.Screen name="QRCode" component={MenuPlaceholderScreen} />
-      <MenuStack.Screen name="Invoices" component={MenuPlaceholderScreen} />
+      <MenuStack.Screen name="Invoices" component={InvoicesScreen} />
       <MenuStack.Screen name="RateApp" component={MenuPlaceholderScreen} />
       <MenuStack.Screen name="FAQ" component={MenuPlaceholderScreen} />
       <MenuStack.Screen name="ContactProxyPay" component={MenuPlaceholderScreen} />

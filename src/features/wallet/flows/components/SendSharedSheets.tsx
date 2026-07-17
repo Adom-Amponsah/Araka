@@ -46,7 +46,7 @@ export function ReviewSheet({
 
   return (
     <BottomSheet visible={visible} onClose={onClose} onBack={onBack}>
-      <Text style={rv.title}>Review Transfer</Text>
+      <Text style={rv.title}>Confirm your Send Money</Text>
       <Text style={rv.sub}>Please verify the information before confirming</Text>
 
       <View style={rv.summaryCard}>
@@ -93,12 +93,12 @@ export function ReviewSheet({
         </View>
       </View>
 
-      <Pressable onPress={onConfirm} style={rv.btn}>
-        <Text style={rv.btnText}>Confirm Transfer</Text>
+      <Pressable onPress={onEdit} style={rv.editBtn}>
+        <Text style={rv.editText}>Edit</Text>
       </Pressable>
 
-      <Pressable onPress={onEdit} style={rv.editBtn}>
-        <Text style={rv.editText}>Edit Details</Text>
+      <Pressable onPress={onConfirm} style={rv.btn}>
+        <Text style={rv.btnText}>Confirm</Text>
       </Pressable>
     </BottomSheet>
   );
@@ -159,8 +159,14 @@ const rv = StyleSheet.create({
     marginBottom: 12,
   },
   btnText: {color: '#FFFFFF', fontSize: 15, fontWeight: '700', fontFamily: BOLD},
-  editBtn: {paddingVertical: 12},
-  editText: {fontSize: 14, fontWeight: '700', fontFamily: BOLD, color: GRAY, textAlign: 'center'},
+  editBtn: {
+    backgroundColor: '#FFF5F2',
+    paddingVertical: 16,
+    borderRadius: 14,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  editText: {fontSize: 15, fontWeight: '700', fontFamily: BOLD, color: CORAL},
 });
 
 // ─────────────────────────────────────────────
@@ -288,6 +294,7 @@ export function SendSuccessSheet({
   visible,
   onClose,
   onDone,
+  onViewTransaction,
   recipientLabel,
   recipientDetail,
   amount,
@@ -295,6 +302,7 @@ export function SendSuccessSheet({
   visible: boolean;
   onClose: () => void;
   onDone?: () => void;
+  onViewTransaction?: () => void;
   recipientLabel: string;
   recipientDetail: string;
   amount: string;
@@ -331,8 +339,8 @@ export function SendSuccessSheet({
           <Ionicons name="checkmark-circle" size={64} color={GREEN} />
         </Animated.View>
 
-        <Text style={ss.title}>Transfer Successful</Text>
-        <Text style={ss.sub}>Your transfer was completed successfully.</Text>
+        <Text style={ss.title}>Send Money Successful</Text>
+        <Text style={ss.sub}>Your send money was completed successfully.</Text>
 
         <View style={ss.card}>
           <View style={ss.cardLeft}>
@@ -351,7 +359,7 @@ export function SendSuccessSheet({
           <Text style={ss.btnText}>Done</Text>
         </Pressable>
 
-        <Pressable onPress={onDone || onClose} style={ss.viewTxn}>
+        <Pressable onPress={onViewTransaction || onClose} style={ss.viewTxn}>
           <Text style={ss.viewTxnText}>View transaction</Text>
         </Pressable>
       </View>
@@ -418,6 +426,7 @@ export function SaveFavoriteSheet({
   recipientDetail,
   amount,
   onReset,
+  iconName = 'storefront',
 }: {
   visible: boolean;
   onClose: () => void;
@@ -425,6 +434,7 @@ export function SaveFavoriteSheet({
   recipientDetail: string;
   amount: string;
   onReset?: () => void;
+  iconName?: string;
 }) {
   const [favoriteName, setFavoriteName] = React.useState('');
   const sendReset = useSendFlowStore((state) => state.reset);
@@ -443,37 +453,28 @@ export function SaveFavoriteSheet({
   return (
     <BottomSheet visible={visible} onClose={onClose}>
       <View style={sf.content}>
-        <View style={sf.iconWrap}>
-          <View style={sf.iconCircle}>
-            <Ionicons name="star" size={32} color={CORAL} />
-          </View>
-        </View>
-
-        <Text style={sf.title}>Save as Favorite</Text>
-        <Text style={sf.sub}>Save this recipient for quick access next time</Text>
+        <Text style={sf.title}>Save as favorite ?</Text>
+        <Text style={sf.sub}>Save these details to make future payments faster.</Text>
 
         <View style={sf.card}>
-          <View style={sf.cardLeft}>
-            <View style={sf.cardIcon}>
-              <Ionicons name="person" size={20} color={CORAL} />
-            </View>
-            <View>
-              <Text style={sf.cardLabel}>{recipientLabel}</Text>
-              <Text style={sf.cardPhone}>{recipientDetail}</Text>
-            </View>
+          <View style={sf.cardIcon}>
+            <Ionicons name={iconName as any} size={28} color={CORAL} />
           </View>
-          <Text style={sf.cardAmount}>${amount || '0.00'}</Text>
+          <View style={sf.cardInfo}>
+            <Text style={sf.cardLabel}>{recipientLabel}</Text>
+            <Text style={sf.cardPhone}>{recipientDetail}</Text>
+          </View>
         </View>
 
-        <Text style={sf.label}>Favorite name (optional)</Text>
+        <Text style={sf.label}>Nickname <Text style={sf.labelOpt}>· Optional</Text></Text>
         <View style={sf.inputRow}>
-          <Ionicons name="bookmark-outline" size={20} color={CORAL} style={{marginLeft: 4}} />
+          <Ionicons name="pricetag-outline" size={20} color={CORAL} style={{marginLeft: 4}} />
           <TextInput
             style={sf.input}
             value={favoriteName}
             onChangeText={setFavoriteName}
-            placeholder="e.g. My Equity RIB"
-            placeholderTextColor="#D1D5DB"
+            placeholder="Agent Coin Bandal"
+            placeholderTextColor="#9CA3AF"
           />
         </View>
 
@@ -482,7 +483,7 @@ export function SaveFavoriteSheet({
         </Pressable>
 
         <Pressable onPress={handleSkip} style={sf.skipBtn}>
-          <Text style={sf.skipText}>Not Now</Text>
+          <Text style={sf.skipText}>Not now</Text>
         </Pressable>
       </View>
     </BottomSheet>
@@ -490,40 +491,28 @@ export function SaveFavoriteSheet({
 }
 
 const sf = StyleSheet.create({
-  content: {alignItems: 'center', paddingVertical: 16},
-  iconWrap: {marginBottom: 16},
-  iconCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: '#FFF5F2',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {fontSize: 22, fontWeight: '800', fontFamily: BOLD, color: DARK, marginBottom: 8},
-  sub: {fontSize: 14, fontFamily: SANS, color: GRAY, textAlign: 'center', marginBottom: 24},
+  content: {paddingVertical: 16},
+  title: {fontSize: 22, fontWeight: '800', fontFamily: BOLD, color: DARK, marginBottom: 8, textAlign: 'left'},
+  sub: {fontSize: 14, fontFamily: SANS, color: GRAY, marginBottom: 24, textAlign: 'left'},
   card: {
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: OFF,
-    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
     padding: 16,
     marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
   },
-  cardLeft: {flexDirection: 'row', alignItems: 'center', gap: 12},
   cardIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    backgroundColor: '#FFF5F2',
-    alignItems: 'center',
-    justifyContent: 'center',
+    marginRight: 16,
   },
-  cardLabel: {fontSize: 14, fontWeight: '700', fontFamily: BOLD, color: DARK, marginBottom: 2},
+  cardInfo: {
+    flex: 1,
+  },
+  cardLabel: {fontSize: 15, fontWeight: '700', fontFamily: BOLD, color: DARK, marginBottom: 2},
   cardPhone: {fontSize: 13, fontFamily: SANS, color: GRAY},
-  cardAmount: {fontSize: 16, fontWeight: '800', fontFamily: BOLD, color: CORAL},
   label: {
     fontSize: 14,
     fontWeight: '700',
@@ -531,6 +520,11 @@ const sf = StyleSheet.create({
     color: DARK,
     marginBottom: 8,
     alignSelf: 'flex-start',
+  },
+  labelOpt: {
+    fontWeight: '400',
+    fontFamily: SANS,
+    color: GRAY,
   },
   inputRow: {
     flexDirection: 'row',
@@ -555,6 +549,126 @@ const sf = StyleSheet.create({
     marginBottom: 12,
   },
   btnText: {color: '#FFFFFF', fontSize: 15, fontWeight: '700', fontFamily: BOLD},
-  skipBtn: {paddingVertical: 12},
-  skipText: {fontSize: 14, fontWeight: '700', fontFamily: BOLD, color: GRAY},
+  skipBtn: {paddingVertical: 12, alignItems: 'center'},
+  skipText: {fontSize: 14, fontWeight: '700', fontFamily: BOLD, color: CORAL},
+});
+
+// ─────────────────────────────────────────────
+// View Transaction Sheet
+// ─────────────────────────────────────────────
+export function ViewTransactionSheet({
+  visible,
+  onClose,
+  amount,
+  fee,
+  recipientName,
+  recipientPhone,
+}: {
+  visible: boolean;
+  onClose: () => void;
+  amount: string;
+  fee: string;
+  recipientName: string;
+  recipientPhone: string;
+}) {
+  const total = (Number(amount) + Number(fee)).toFixed(2);
+  const transactionId = `TXN-${Math.floor(100000 + Math.random() * 900000)}`;
+
+  return (
+    <BottomSheet visible={visible} onClose={onClose} scrollable>
+      <View style={vt.content}>
+        <View style={vt.iconCircle}>
+          <Ionicons name="wallet-outline" size={40} color={CORAL} />
+        </View>
+
+        <Text style={vt.title}>Send Money</Text>
+        <Text style={vt.amount}>-{total} USD</Text>
+        <Text style={vt.date}>March 21 2026 · 8:32 AM</Text>
+
+        <View style={vt.card}>
+          <View style={vt.row}>
+            <Text style={vt.label}>Amount</Text>
+            <Text style={vt.value}>${Number(amount).toFixed(2)}</Text>
+          </View>
+          <View style={vt.divider} />
+          <View style={vt.row}>
+            <Text style={vt.label}>Fee</Text>
+            <Text style={vt.value}>${Number(fee).toFixed(2)}</Text>
+          </View>
+          <View style={vt.divider} />
+          <View style={vt.row}>
+            <Text style={vt.label}>Total</Text>
+            <Text style={vt.totalValue}>${total}</Text>
+          </View>
+        </View>
+
+        <View style={vt.card}>
+          <View style={vt.row}>
+            <Text style={vt.label}>Name</Text>
+            <Text style={vt.value}>{recipientName}</Text>
+          </View>
+          <View style={vt.divider} />
+          <View style={vt.row}>
+            <Text style={vt.label}>Phone Number</Text>
+            <Text style={vt.value}>{recipientPhone}</Text>
+          </View>
+          <View style={vt.divider} />
+          <View style={vt.row}>
+            <Text style={vt.label}>Transaction ID</Text>
+            <Text style={vt.value}>{transactionId}</Text>
+          </View>
+        </View>
+
+        <Pressable onPress={onClose} style={vt.btn}>
+          <Text style={vt.btnText}>Download Receipt</Text>
+        </Pressable>
+      </View>
+    </BottomSheet>
+  );
+}
+
+const vt = StyleSheet.create({
+  content: {alignItems: 'center', paddingTop: 16, paddingBottom: 40},
+  iconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  title: {fontSize: 15, fontWeight: '700', fontFamily: BOLD, color: '#4B5563', marginBottom: 8},
+  amount: {fontSize: 28, fontWeight: '800', fontFamily: BOLD, color: DARK, marginBottom: 8},
+  date: {fontSize: 13, fontFamily: SANS, color: GRAY, marginBottom: 24},
+  card: {
+    width: '100%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
+    padding: 16,
+    marginBottom: 16,
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 4,
+  },
+  label: {fontSize: 14, fontFamily: SANS, color: GRAY},
+  value: {fontSize: 14, fontWeight: '600', fontFamily: BOLD, color: DARK},
+  totalValue: {fontSize: 14, fontWeight: '700', fontFamily: BOLD, color: CORAL},
+  divider: {height: 1, backgroundColor: '#F3F4F6', marginVertical: 12},
+  btn: {
+    width: '100%',
+    backgroundColor: '#FFF5F2',
+    paddingVertical: 16,
+    borderRadius: 14,
+    alignItems: 'center',
+    marginTop: 8,
+    marginBottom: 24,
+    paddingBottom: 8,
+  },
+  btnText: {color: CORAL, fontSize: 15, fontWeight: '700', fontFamily: BOLD},
 });

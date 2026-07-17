@@ -7,6 +7,7 @@ import {NotificationsScreen} from '@features/notifications/screens/Notifications
 import {MenuNavigator, MenuStackParamList} from '@features/menu/navigation/MenuNavigator';
 import {MyQrScreen} from '@features/settings/screens/MyQrScreen';
 import {CreateInvoiceScreen} from '@features/wallet/screens/CreateInvoiceScreen';
+import {AllTransactionsScreen} from '@features/wallet/screens/AllTransactionsScreen';
 
 export type MainStackParamList = {
   MainTabs: undefined;
@@ -14,6 +15,7 @@ export type MainStackParamList = {
   Notifications: undefined;
   MyQR: undefined;
   CreateInvoice: undefined;
+  Transactions: undefined;
   Menu: NavigatorScreenParams<MenuStackParamList> | undefined;
 };
 
@@ -42,6 +44,7 @@ export function MainNavigator() {
       <MainStack.Screen name="Notifications" component={NotificationsScreen} />
       <MainStack.Screen name="MyQR" component={MyQrScreen} />
       <MainStack.Screen name="CreateInvoice" component={CreateInvoiceScreen} />
+      <MainStack.Screen name="Transactions" component={AllTransactionsScreen} />
       <MainStack.Screen name="Menu" component={MenuNavigator} />
     </MainStack.Navigator>
   );

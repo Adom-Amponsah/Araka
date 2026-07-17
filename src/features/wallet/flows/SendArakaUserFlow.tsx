@@ -4,7 +4,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import {getSystemFont} from '@styles/typography';
 import {useSendFlowStore} from '../store/sendFlowStore';
 import {BottomSheet} from './components/BottomSheet';
-import {ReviewSheet, SendProcessingSheet, SendSuccessSheet} from './components/SendSharedSheets';
+import {ReviewSheet, SendProcessingSheet, SendSuccessSheet, ViewTransactionSheet} from './components/SendSharedSheets';
 import {EnterPinSheet} from './components/SharedSheets';
 
 const CORAL = '#F27649';
@@ -165,6 +165,7 @@ export function SendArakaUserFlow({visible, onClose, onBack}: {visible: boolean;
   const submitPin = useSendFlowStore((state) => state.submitPin);
   const backToRecipient = useSendFlowStore((state) => state.backToRecipient);
   const backToDetails = useSendFlowStore((state) => state.backToDetails);
+  const viewTransaction = useSendFlowStore((state) => state.viewTransaction);
 
   if (!visible) {
     return null;
@@ -216,9 +217,19 @@ export function SendArakaUserFlow({visible, onClose, onBack}: {visible: boolean;
       <SendSuccessSheet
         visible={step === 'success'}
         onClose={onClose}
-        recipientLabel="Araka User"
+        onViewTransaction={viewTransaction}
+        recipientLabel="Louis Definesse"
         recipientDetail={recipientDetail}
         amount={amount}
+      />
+
+      <ViewTransactionSheet
+        visible={step === 'viewTransaction'}
+        onClose={onClose}
+        amount={amount || '10.00'}
+        fee={fee}
+        recipientName="Louis Definesse"
+        recipientPhone={recipientDetail}
       />
     </>
   );

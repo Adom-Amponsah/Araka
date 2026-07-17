@@ -2,6 +2,7 @@ import React from 'react';
 import {View,Text,Pressable,StyleSheet,ScrollView,} from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {getSystemFont} from '@styles/typography';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 const SANS = getSystemFont();
 
@@ -33,9 +34,10 @@ const feeData = [
 ];
 
 export function FeesScreen({navigation}: any) {
+  const insets = useSafeAreaInsets();
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.content}showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={[styles.content, {paddingTop: Math.max(insets.top, 20) + 10}]}showsVerticalScrollIndicator={false}>
         <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#111827"/>
         </Pressable>
@@ -78,7 +80,6 @@ const styles = StyleSheet.create({
   },
   content:{
     paddingHorizontal:10,
-    paddingTop:20,
     paddingBottom:30,
   },
   backButton:{

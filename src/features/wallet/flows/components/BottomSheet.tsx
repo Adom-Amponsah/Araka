@@ -10,11 +10,14 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Dimensions,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const GRAY = '#8A94A6';
+
+const {height} = Dimensions.get('window');
 
 export function BottomSheet({
   visible,
@@ -33,12 +36,14 @@ export function BottomSheet({
   fullHeight?: boolean;
   scrollable?: boolean;
 }) {
-  const slideAnim = React.useRef(new Animated.Value(600)).current;
+  const [show, setShow] = React.useState(visible);
+  const slideAnim = React.useRef(new Animated.Value(height)).current;
   const backdropAnim = React.useRef(new Animated.Value(0)).current;
   const insets = useSafeAreaInsets();
 
   React.useEffect(() => {
     if (visible) {
+      setShow(true);
       Animated.parallel([
         Animated.spring(slideAnim, {
           toValue: 0,
@@ -55,7 +60,7 @@ export function BottomSheet({
     } else {
       Animated.parallel([
         Animated.timing(slideAnim, {
-          toValue: 600,
+          toValue: height,
           duration: 220,
           easing: Easing.in(Easing.cubic),
           useNativeDriver: true,
@@ -65,11 +70,13 @@ export function BottomSheet({
           duration: 180,
           useNativeDriver: true,
         }),
-      ]).start();
+      ]).start(() => {
+        setShow(false);
+      });
     }
-  }, [backdropAnim, slideAnim, visible]);
+  }, [backdropAnim, slideAnim, visible, height]);
 
-  if (!visible) {
+  if (!show) {
     return null;
   }
 

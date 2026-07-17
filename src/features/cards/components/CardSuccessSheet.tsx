@@ -1,19 +1,17 @@
 import * as React from 'react';
 import {
-  Animated,
-  Dimensions,
-  Modal,
-  Pressable,
-  StyleSheet,
   Text,
   View,
+  Pressable,
+  StyleSheet,
 } from 'react-native';
+import {BottomSheet} from '../../wallet/flows/components/BottomSheet';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import {getSystemFont} from '@styles/typography';
 import type {Card} from '../store/cardsStore';
 
-const {height} = Dimensions.get('window');
+
 const CORAL = '#F27649';
 const DARK = '#1A2535';
 const GRAY = '#8A94A6';
@@ -28,34 +26,14 @@ type CardSuccessSheetProps = {
 export function CardSuccessSheet({visible, card, onDone}: CardSuccessSheetProps) {
   if (!card) return null;
 
-  const insets = useSafeAreaInsets();
-  const slide = React.useRef(new Animated.Value(height)).current;
 
-  React.useEffect(() => {
-    Animated.spring(slide, {
-      toValue: visible ? 0 : height,
-      useNativeDriver: true,
-      damping: 20,
-      stiffness: 200,
-    }).start();
-  }, [visible, slide]);
 
   return (
-    <Modal visible={visible} transparent animationType="none" statusBarTranslucent navigationBarTranslucent>
-      <View style={styles.root}>
-        <Animated.View
-          style={[
-            styles.sheet,
-            {
-              paddingBottom: Math.max(insets.bottom, 16) + 16,
-              transform: [{translateY: slide}],
-            },
-          ]}>
-          <View style={styles.dragHandle} />
-
-          <View style={styles.iconCircle}>
-            <Ionicons name="checkmark" size={32} color="#22C55E" />
-          </View>
+    <BottomSheet visible={visible} onClose={onDone}>
+      <View style={{alignItems: 'center'}}>
+        <View style={styles.iconCircle}>
+          <Ionicons name="checkmark" size={32} color="#22C55E" />
+        </View>
 
           <Text style={styles.title}>
             {card.type === 'physical' ? 'Card linked Successfully' : 'Card added Successfully'}
@@ -77,33 +55,12 @@ export function CardSuccessSheet({visible, card, onDone}: CardSuccessSheetProps)
           <Pressable onPress={onDone} style={styles.cta}>
             <Text style={styles.ctaText}>Done</Text>
           </Pressable>
-        </Animated.View>
       </View>
-    </Modal>
+    </BottomSheet>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(13,19,26,0.35)',
-  },
-  sheet: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    paddingHorizontal: 24,
-    paddingTop: 12,
-    alignItems: 'center',
-  },
-  dragHandle: {
-    width: 44,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#E6EBF1',
-    marginBottom: 16,
-  },
   iconCircle: {
     width: 74,
     height: 74,

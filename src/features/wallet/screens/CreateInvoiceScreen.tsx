@@ -196,20 +196,16 @@ function InvoicePreviewSheet({
       <Text style={ip.title}>Invoice Preview</Text>
       <Text style={ip.sub}>Please verify the information before confirming</Text>
 
-      <View style={ip.card}>
-        <View style={ip.cardRow}>
-          <Text style={ip.cardLabel}>To</Text>
-          <Text style={ip.cardValue}>{recipientName}</Text>
+      <View style={ip.topCard}>
+        <View style={ip.iconBox}>
+          <Ionicons name="receipt-outline" size={32} color={DARK} />
         </View>
-        <View style={ip.cardDivider} />
-        <View style={ip.cardRow}>
-          <Text style={ip.cardLabel}>Number</Text>
-          <Text style={ip.cardValue}>{invoiceNumber}</Text>
-        </View>
-        <View style={ip.cardDivider} />
-        <View style={ip.cardRow}>
-          <Text style={ip.cardLabel}>Amount</Text>
-          <Text style={ip.cardAmount}>${amount || '0.00'} USD</Text>
+        <View style={ip.topCardInfo}>
+          <Text style={ip.topCardTitle}>
+            To <Text style={{color: CORAL}}>{recipientName}</Text>
+          </Text>
+          <Text style={ip.topCardSubtitle}>{phoneOrEmail}</Text>
+          <Text style={ip.topCardSubtitle}>${amount || '0.00'}</Text>
         </View>
       </View>
 
@@ -230,13 +226,12 @@ function InvoicePreviewSheet({
         </View>
       </View>
 
-      <Pressable onPress={onShare} style={ip.shareBtn}>
-        <Ionicons name="share-outline" size={18} color="#FFFFFF" style={{marginRight: 6}} />
-        <Text style={ip.shareBtnText}>Share Invoice</Text>
-      </Pressable>
-
       <Pressable onPress={onEdit} style={ip.editBtn}>
         <Text style={ip.editBtnText}>Edit Invoice</Text>
+      </Pressable>
+
+      <Pressable onPress={onShare} style={ip.shareBtn}>
+        <Text style={ip.shareBtnText}>Share Invoice</Text>
       </Pressable>
     </BottomSheet>
   );
@@ -304,21 +299,35 @@ const styles = StyleSheet.create({
 const ip = StyleSheet.create({
   title: {fontSize: 22, fontWeight: '800', fontFamily: BOLD, color: DARK, marginBottom: 4},
   sub: {fontSize: 14, fontFamily: SANS, color: GRAY, marginBottom: 20},
-  card: {
-    backgroundColor: OFF,
-    borderRadius: 16,
-    padding: 18,
-    marginBottom: 16,
-  },
-  cardRow: {
+  topCard: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 20,
   },
-  cardLabel: {fontSize: 14, fontFamily: SANS, color: GRAY},
-  cardValue: {fontSize: 14, fontWeight: '600', fontFamily: BOLD, color: DARK},
-  cardAmount: {fontSize: 16, fontWeight: '700', fontFamily: BOLD, color: CORAL},
-  cardDivider: {height: 1, backgroundColor: '#E5E7EB', marginVertical: 12},
+  iconBox: {
+    width: 64,
+    height: 64,
+    backgroundColor: OFF,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
+  topCardInfo: {
+    flex: 1,
+    gap: 4,
+  },
+  topCardTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    fontFamily: BOLD,
+    color: DARK,
+  },
+  topCardSubtitle: {
+    fontSize: 14,
+    fontFamily: SANS,
+    color: GRAY,
+  },
   table: {
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
@@ -342,9 +351,15 @@ const ip = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
   },
   shareBtnText: {color: '#FFFFFF', fontSize: 15, fontWeight: '700', fontFamily: BOLD},
-  editBtn: {paddingVertical: 12, alignItems: 'center'},
-  editBtnText: {fontSize: 14, fontWeight: '700', fontFamily: BOLD, color: GRAY},
+  editBtn: {
+    backgroundColor: '#FAF0EC',
+    paddingVertical: 16,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  editBtnText: {fontSize: 15, fontWeight: '700', fontFamily: BOLD, color: CORAL},
 });

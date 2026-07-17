@@ -837,18 +837,15 @@ function SaveSheet({
   onClose,
   onSave,
   phoneNumber,
-  amount,
-  total,
-  provider,
 }: {
   visible: boolean;
   onClose: () => void;
   onSave: () => void;
   phoneNumber: string;
-  amount: string;
-  total: number;
-  provider: string;
 }) {
+  const [nickname, setNickname] = React.useState('');
+  const [nicknameFocused, setNicknameFocused] = React.useState(false);
+
   return (
     <BottomSheet visible={visible} onClose={onClose}>
       <View style={bs.handle} />
@@ -856,36 +853,115 @@ function SaveSheet({
         <Ionicons name="close" size={22} color="#8A94A6" />
       </Pressable>
 
-      <View style={s.successIconWrap}>
-        <View style={s.successIconCircle}>
-          <Ionicons name="checkmark" size={36} color="#10B981" />
-        </View>
-      </View>
-
-      <Text style={bs.title}>Save Transaction</Text>
-      <Text style={bs.subtitle}>
-        Would you like to save this transaction to your history?
+      <Text style={sv.title}>Save this information?</Text>
+      <Text style={sv.subtitle}>
+        Save these details to make future payments faster.
       </Text>
 
-      <View style={bs.txCard}>
-        <View style={bs.providerInfo}>
-          <Text style={bs.providerName}>{provider} Airtime</Text>
-          <Text style={bs.providerSub}>{phoneNumber}</Text>
-        </View>
-        <Text style={bs.txAmount}>
-          {formatMoney(total)}
-        </Text>
+      <Text style={d.label}>Phone number</Text>
+      <View style={sv.inputWrap}>
+        <Ionicons name="call-outline" size={18} color="#F27649" />
+        <TextInput
+          style={sv.input}
+          value={phoneNumber}
+          editable={false}
+          placeholderTextColor="#C4CDD8"
+        />
+        <Ionicons name="chevron-down" size={18} color="#8A94A6" />
       </View>
 
-      <Pressable onPress={onSave} style={bs.payBtn}>
-        <Text style={bs.payBtnText}>Save Transaction</Text>
+      <Text style={sv.label}>
+        <Text style={sv.labelDark}>Nickname</Text>
+        <Text style={sv.labelLight}> · Optional</Text>
+      </Text>
+      <View style={[sv.inputWrap, {borderColor: nicknameFocused ? '#F27649' : '#E6EBF1'}]}>
+        <Ionicons name="pricetag-outline" size={18} color="#F27649" />
+        <TextInput
+          style={sv.input}
+          value={nickname}
+          onChangeText={setNickname}
+          placeholder="Mom's phone"
+          placeholderTextColor="#1A2535"
+          onFocus={() => setNicknameFocused(true)}
+          onBlur={() => setNicknameFocused(false)}
+        />
+      </View>
+
+      <Pressable onPress={onSave} style={[bs.payBtn, sv.saveBtn]}>
+        <Text style={bs.payBtnText}>Save</Text>
       </Pressable>
-      <Pressable onPress={onClose} style={s.viewTx}>
-        <Text style={s.viewTxText}>Don't Save</Text>
+      <Pressable onPress={onClose} style={sv.notNowBtn}>
+        <Text style={sv.notNowText}>Not now</Text>
       </Pressable>
     </BottomSheet>
   );
 }
+
+const sv = StyleSheet.create({
+  title: {
+    color: DARK,
+    fontSize: 22,
+    fontWeight: '800',
+    fontFamily: getSystemFont('bold'),
+    letterSpacing: -0.4,
+    marginBottom: 6,
+    marginTop: 10,
+  },
+  subtitle: {
+    color: '#8A94A6',
+    fontSize: 14,
+    fontFamily: SANS,
+    lineHeight: 20,
+    marginBottom: 24,
+  },
+  label: {
+    marginBottom: 8,
+  },
+  labelDark: {
+    color: DARK,
+    fontSize: 14,
+    fontWeight: '700',
+    fontFamily: getSystemFont('bold'),
+  },
+  labelLight: {
+    color: '#8A94A6',
+    fontSize: 14,
+    fontFamily: SANS,
+  },
+  inputWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderWidth: 1,
+    borderColor: '#E6EBF1',
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    height: 54,
+    marginBottom: 20,
+  },
+  input: {
+    flex: 1,
+    color: DARK,
+    fontSize: 15,
+    fontFamily: SANS,
+    padding: 0,
+  },
+  saveBtn: {
+    marginTop: 12,
+  },
+  notNowBtn: {
+    alignItems: 'center',
+    paddingVertical: 16,
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  notNowText: {
+    color: CORAL,
+    fontSize: 15,
+    fontWeight: '700',
+    fontFamily: getSystemFont('bold'),
+  },
+});
 
 // ─────────────────────────────────────────────
 // Main flow
@@ -1015,9 +1091,6 @@ export function VodacomAirtimeFlow() {
         onClose={handleCancelSave}
         onSave={handleSave}
         phoneNumber={phoneNumber}
-        amount={amount}
-        total={financials.total}
-        provider={session?.provider?.name || 'Vodacom'}
       />
     </>
   );

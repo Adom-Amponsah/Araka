@@ -69,14 +69,11 @@ export function AuthScreen() {
           />
 
           <View style={styles.taglineContainer}>
-            {/* <Text className="text-white text-center text-2xl font-bold tracking-tight">
-              All your services.
-            </Text>
-            <Text className="text-white text-center text-2xl font-bold tracking-tight">
-              One wallet.
-            </Text> */}
             <Text style={styles.taglineText}>
-              Pay bills, buy airtime, and manage your finances seamlessly
+              All your services
+            </Text>
+            <Text style={styles.taglineText}>
+              One Wallet
             </Text>
           </View>
         </View>
@@ -136,11 +133,12 @@ const styles = StyleSheet.create({
   taglineText: {
     color: 'rgba(255, 255, 255, 0.7)',
     textAlign: 'center',
-    fontSize: 14,
+    fontSize: 28,
     fontFamily: getSystemFont(),
     marginTop: 12,
     maxWidth: 280,
     lineHeight: 20,
+    fontWeight: 'bold',
   },
   ctaContainer: {
     paddingHorizontal: 24,

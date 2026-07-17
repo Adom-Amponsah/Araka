@@ -29,8 +29,8 @@ export function CongratsScreen() {
       <View style={styles.textContainer}>
         <Text style={styles.title}>Congratulations!</Text>
         <Text style={styles.subtitle}>
-          Your account has been successfully created. You can now start using
-          Araka.
+          Your account has been successfully created. You can can and receive
+          money !
         </Text>
       </View>
 
